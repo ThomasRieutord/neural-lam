@@ -2,6 +2,7 @@
 import datetime as dt
 import glob
 import os
+import yaml
 
 # Third-party
 import numpy as np
@@ -65,7 +66,6 @@ class WeatherDataset(torch.utils.data.Dataset):
         self,
         dataset_name,
         pred_length=19,
-        n_time_steps_per_file=65,
         split="train",
         subsample_step=3,
         standardize=True,
@@ -78,6 +78,13 @@ class WeatherDataset(torch.utils.data.Dataset):
         self.sample_dir_path = os.path.join(
             package_rootdir, "data", dataset_name, "samples", split
         )
+        cstfile = os.path.join(
+            package_rootdir, "data", dataset_name, "static", "constants.yaml"
+        )
+        with open(cstfile, "r") as yf:
+            self.constants = yaml.safe_load(yf)
+
+        n_timesteps_per_file = self.constants["N_TIMESTEPS_PER_FILE"]
 
         member_file_regexp = (
             "nwp*mbr000.npy" if control_only else "nwp*mbr*.npy"
@@ -94,8 +101,8 @@ class WeatherDataset(torch.utils.data.Dataset):
         self.sample_length = pred_length + 2  # 2 init states
         self.subsample_step = subsample_step
         self.original_sample_length = (
-            n_time_steps_per_file // self.subsample_step
-        )  # 21 for 3h steps
+            n_timesteps_per_file // self.subsample_step
+        )  # 65 // 3 = 21 for 3h steps
         assert (
             self.sample_length <= self.original_sample_length
         ), "Requesting too long time series samples"

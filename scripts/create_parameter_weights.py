@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 # Third-party
 import numpy as np
 import torch
+import yaml
 from tqdm import tqdm
 
 # First-party
@@ -66,13 +67,18 @@ def main():
         os.path.join(static_dir_path, "parameter_weights.npy"),
         w_list.astype("float32"),
     )
+    cstfile = os.path.join(static_dir_path, "constants.yaml")
+    with open(cstfile, "r") as yf:
+        dsconstants = yaml.safe_load(yf)
+
+    n_timesteps_per_file = dsconstants["N_TIMESTEPS_PER_FILE"]
 
     # Load dataset without any subsampling
     ds = WeatherDataset(
         args.dataset,
         split="train",
         subsample_step=1,
-        pred_length=63,
+        pred_length=n_timesteps_per_file - 2,
         standardize=False,
     )  # Without standardization
     loader = torch.utils.data.DataLoader(
@@ -119,13 +125,15 @@ def main():
         args.dataset,
         split="train",
         subsample_step=1,
-        pred_length=63,
+        pred_length=n_timesteps_per_file - 2,
         standardize=True,
     )  # Re-load with standardization
     loader_standard = torch.utils.data.DataLoader(
         ds_standard, args.batch_size, shuffle=False, num_workers=args.n_workers
     )
-    used_subsample_len = (65 // args.step_length) * args.step_length
+    used_subsample_len = (
+        n_timesteps_per_file // args.step_length
+    ) * args.step_length
 
     diff_means = []
     diff_squares = []

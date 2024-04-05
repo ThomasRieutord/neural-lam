@@ -201,20 +201,22 @@ def main():
     seed.seed_everything(args.seed)
 
     # Load data
+    train_dataset = WeatherDataset(
+        args.dataset,
+        pred_length=args.ar_steps,
+        split="train",
+        subsample_step=args.step_length,
+        subset=bool(args.subset_ds),
+        control_only=args.control_only,
+    )
+    n_timesteps_per_file = train_dataset.constants["N_TIMESTEPS_PER_FILE"]
     train_loader = torch.utils.data.DataLoader(
-        WeatherDataset(
-            args.dataset,
-            pred_length=args.ar_steps,
-            split="train",
-            subsample_step=args.step_length,
-            subset=bool(args.subset_ds),
-            control_only=args.control_only,
-        ),
+        train_dataset,
         args.batch_size,
         shuffle=True,
         num_workers=args.n_workers,
     )
-    max_pred_length = (65 // args.step_length) - 2  # 19
+    max_pred_length = (n_timesteps_per_file // args.step_length) - 2  # 19
     val_loader = torch.utils.data.DataLoader(
         WeatherDataset(
             args.dataset,
