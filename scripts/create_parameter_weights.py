@@ -8,6 +8,7 @@ import torch
 from tqdm import tqdm
 
 # First-party
+from neural_lam import package_rootdir
 from neural_lam import constants
 from neural_lam.weather_dataset import WeatherDataset
 
@@ -43,7 +44,9 @@ def main():
     )
     args = parser.parse_args()
 
-    static_dir_path = os.path.join("data", args.dataset, "static")
+    static_dir_path = os.path.join(
+        package_rootdir, "data", args.dataset, "static"
+    )
 
     # Create parameter weights based on height
     # based on fig A.1 in graph cast paper

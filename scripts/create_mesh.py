@@ -12,6 +12,9 @@ import torch
 import torch_geometric as pyg
 from torch_geometric.utils.convert import from_networkx
 
+# First-party
+from neural_lam import package_rootdir
+
 
 def plot_graph(graph, title=None):
     fig, axis = plt.subplots(figsize=(8, 8), dpi=200)  # W,H
@@ -187,8 +190,10 @@ def main():
     args = parser.parse_args()
 
     # Load grid positions
-    static_dir_path = os.path.join("data", args.dataset, "static")
-    graph_dir_path = os.path.join("graphs", args.graph)
+    static_dir_path = os.path.join(
+        package_rootdir, "data", args.dataset, "static"
+    )
+    graph_dir_path = os.path.join(package_rootdir, "graphs", args.graph)
     os.makedirs(graph_dir_path, exist_ok=True)
 
     xy = np.load(os.path.join(static_dir_path, "nwp_xy.npy"))

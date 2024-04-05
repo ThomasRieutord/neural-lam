@@ -6,6 +6,8 @@ from argparse import ArgumentParser
 import numpy as np
 import torch
 
+from neural_lam import package_rootdir
+
 
 def main():
     """
@@ -20,7 +22,9 @@ def main():
     )
     args = parser.parse_args()
 
-    static_dir_path = os.path.join("data", args.dataset, "static")
+    static_dir_path = os.path.join(
+        package_rootdir, "data", args.dataset, "static"
+    )
 
     # -- Static grid node features --
     grid_xy = torch.tensor(
