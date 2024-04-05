@@ -8,25 +8,64 @@ import numpy as np
 import torch
 
 # First-party
-from neural_lam import constants, utils
+from neural_lam import constants, utils, package_rootdir
 
 
 class WeatherDataset(torch.utils.data.Dataset):
     """
-    For our dataset:
-    N_t' = 65
-    N_t = 65//subsample_step (= 21 for 3h steps)
-    dim_x = 268
-    dim_y = 238
-    N_grid = 268x238 = 63784
-    d_features = 17 (d_features' = 18)
-    d_forcing = 5
+    Parameters
+    ----------
+    dataset_name: str
+        Name of dataset to load
+
+    pred_length: int
+        Desired length of target time series
+
+    split: {"train", "val", "test"}
+        Cross-validation split to use
+
+    subsample_step: int
+        Step size for subsampling time series in the files
+
+    standardize: bool
+        If True, load pre-computed statistics and return standardized data
+
+    subset: bool
+        If True, only use a 50-sample subset of the data
+
+    control_only: bool
+        If True, only use the control member (mandatory for deterministic data)
+
+
+    Returns
+    -------
+    init_states: torch.Tensor of shape (2, N_grid, d_features)
+        Initial states of the graph network
+
+    target_states: torch.Tensor of shape (pred_length, N_grid, d_features)
+        Target states of the graph network
+
+    forcing: torch.Tensor of shape (pred_length, N_grid, d_forcing)
+        Forcing for the graph network
+
+
+    Notes
+    -----
+    For the MEPS dataset:
+        N_t' = 65
+        N_t = 65//subsample_step (= 21 for 3h steps)
+        dim_x = 268
+        dim_y = 238
+        N_grid = 268x238 = 63784
+        d_features = 17 (d_features' = 18)
+        d_forcing = 5
     """
 
     def __init__(
         self,
         dataset_name,
         pred_length=19,
+        n_time_steps_per_file=65,
         split="train",
         subsample_step=3,
         standardize=True,
@@ -37,7 +76,7 @@ class WeatherDataset(torch.utils.data.Dataset):
 
         assert split in ("train", "val", "test"), "Unknown dataset split"
         self.sample_dir_path = os.path.join(
-            "data", dataset_name, "samples", split
+            package_rootdir, "data", dataset_name, "samples", split
         )
 
         member_file_regexp = (
@@ -55,7 +94,7 @@ class WeatherDataset(torch.utils.data.Dataset):
         self.sample_length = pred_length + 2  # 2 init states
         self.subsample_step = subsample_step
         self.original_sample_length = (
-            65 // self.subsample_step
+            n_time_steps_per_file // self.subsample_step
         )  # 21 for 3h steps
         assert (
             self.sample_length <= self.original_sample_length
