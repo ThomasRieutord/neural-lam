@@ -1,4 +1,4 @@
-# Standard library
+    # Standard library
 import os
 from argparse import ArgumentParser
 
