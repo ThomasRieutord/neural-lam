@@ -8,6 +8,7 @@ graphs
 sweeps
 test_*.sh
 local
+logs
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
