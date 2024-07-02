@@ -10,6 +10,7 @@
 #SBATCH --qos=ng
 #SBATCH --gpus=1
 #SBATCH --cpus-per-gpu=8
+#SBATCH --mem=64GB
 # Wall clock time limit
 #SBATCH --time=24:00:00
 # Send an email on failure
@@ -25,6 +26,6 @@ echo "Env successfully loaded!"
 python --version
 date
 
-python $HOME/neural-lam/scripts/train_model.py --dataset mera_dataset_10years --batch_size 2 --step_length 1 --ar_steps 2 --epochs 3 --n_workers 8
+python $HOME/neural-lam/scripts/train_model.py --dataset mera_dataset_10years --batch_size 8 --step_length 1 --ar_steps 2 --epochs 200 --n_workers 8
 
 date
