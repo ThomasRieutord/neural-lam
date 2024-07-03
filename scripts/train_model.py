@@ -1,4 +1,5 @@
 # Standard library
+import os
 import random
 import time
 from argparse import ArgumentParser
@@ -259,7 +260,7 @@ def main():
         f"{time.strftime('%m_%d_%H')}-{random_run_id:04d}"
     )
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath=f"{package_rootdir}/saved_models/{run_name}",
+        dirpath=os.path.join(package_rootdir, "saved_models", run_name),
         filename="min_val_loss",
         monitor="val_mean_loss",
         mode="min",
