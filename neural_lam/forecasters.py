@@ -6,7 +6,18 @@ Module defining the forecaster class. It is used to make weather forecasts in in
 
 import os
 import numpy as np
+import torch
+from neural_lam import package_rootdir
+from neural_lam.models.graph_lam import GraphLAM
+from neural_lam.models.hi_lam import HiLAM
+from neural_lam.models.hi_lam_parallel import HiLAMParallel
 
+MODEL_DIRECTORY = os.path.join(package_rootdir, "saved_models")
+MODELS = {
+    "graph_lam": GraphLAM,
+    "hi_lam": HiLAM,
+    "hi_lam_parallel": HiLAMParallel,
+}
 
 class Forecaster:
     """Abstract class for forecasters"""
@@ -37,4 +48,23 @@ class GradientIncrement(Forecaster):
         for t in range(1, nt-1):
             forecast[t+1] = forecast[t] + self.incrementcoeff*(forecast[t] - forecast[t-1])
         
+        return forecast
+
+class NeuralLAMforecaster(Forecaster):
+    """Make prediction from a pre-trained Neural-LAM model"""
+    def __init__(self, ckptpath, device ="cpu"):
+        ckpt = torch.load(ckptpath, map_location=device)
+        saved_args = ckpt["hyper_parameters"]["args"]
+        model_class = MODELS[saved_args.model]
+        modelid = os.path.basename(os.path.dirname(ckptpath))
+        modelid = ''.join(c for c in modelid if c.isalnum())
+        
+        self.model = model_class.load_from_checkpoint(ckptpath, args=saved_args)
+        self.shortname = f"{modelid}_{saved_args.epochs}e_{saved_args.batch_size}b"
+    
+    def forecast(self, analysis, forcings, borders):
+        analysis, forcings, borders = [torch.tensor(_) for _ in (analysis, forcings, borders)]
+        analysis, forcings, borders = [_.unsqueeze(0).float() for _ in (analysis, forcings, borders)]
+        # print(f"Shapes: analysis={analysis.shape}, forcings={forcings.shape}, borders={borders.shape}")
+        forecast, _ = self.model.unroll_prediction(analysis, forcings, borders)
         return forecast
