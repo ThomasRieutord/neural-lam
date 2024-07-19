@@ -67,4 +67,4 @@ class NeuralLAMforecaster(Forecaster):
         analysis, forcings, borders = [_.unsqueeze(0).float() for _ in (analysis, forcings, borders)]
         # print(f"Shapes: analysis={analysis.shape}, forcings={forcings.shape}, borders={borders.shape}")
         forecast, _ = self.model.unroll_prediction(analysis, forcings, borders)
-        return forecast
+        return forecast.squeeze().detach().numpy()

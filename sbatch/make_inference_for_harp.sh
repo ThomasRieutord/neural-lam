@@ -8,7 +8,7 @@
 #SBATCH --chdir=/scratch/dutr/spool
 # Choose the queue
 #SBATCH --qos=nf
-#SBATCH --mem=64G
+#SBATCH --mem=128G
 # Wall clock time limit
 #SBATCH --time=30:05:00
 # Send an email on failure
