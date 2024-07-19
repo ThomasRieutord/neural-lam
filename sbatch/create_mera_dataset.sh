@@ -1,9 +1,9 @@
 #!/bin/bash
 # The job name
-#SBATCH --job-name=pynf
+#SBATCH --job-name=creset
 # Set the error and output files
-#SBATCH --output=pynf-%J.out
-#SBATCH --error=pynf-%J.out
+#SBATCH --output=creset-%J.out
+#SBATCH --error=creset-%J.out
 # Set the initial working directory
 #SBATCH --chdir=/scratch/dutr/spool
 # Choose the queue
@@ -24,15 +24,15 @@ echo "Env successfully loaded!"
 python --version
 date
 
-DATASETNAME=mera_4years
-SDATE=1981-01-01
-EDATE=1985-01-01
+DATASETNAME=mera_20years_fullres
+SDATE=1991-01-02
+EDATE=2011-01-02
 SUBSAMPLE=1
 
-python $HOME/mera-explorer/scripts/create_static_features.py --indirclim $PERM/mera --outdirmllam $SCRATCH/neurallam/$DATASETNAME --subsample $SUBSAMPLE --writefiles
+python $HOME/mera-explorer/scripts/create_static_features.py --indirclim $PERM/mera --outdirmllam $SCRATCH/neurallam-datasets/$DATASETNAME --subsample $SUBSAMPLE --writefiles
 
 date
 
-python $HOME/mera-explorer/scripts/create_mera_sample.py --indirclim $PERM/mera --indirgrib $SCRATCH --outdir $SCRATCH/neurallam/$DATASETNAME/samples --subsample $SUBSAMPLE --sdate $SDATE --edate $EDATE --writefiles
+python $HOME/mera-explorer/scripts/create_mera_sample.py --indirclim $PERM/mera --indirgrib $SCRATCH --outdir $SCRATCH/neurallam-datasets/$DATASETNAME/samples --subsample $SUBSAMPLE --sdate $SDATE --edate $EDATE --writefiles
 
 date
