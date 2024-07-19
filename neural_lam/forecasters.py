@@ -55,16 +55,19 @@ class NeuralLAMforecaster(Forecaster):
     def __init__(self, ckptpath, device ="cpu"):
         ckpt = torch.load(ckptpath, map_location=device)
         saved_args = ckpt["hyper_parameters"]["args"]
+        epoch = ckpt["epoch"]
         model_class = MODELS[saved_args.model]
         modelid = os.path.basename(os.path.dirname(ckptpath))
         modelid = ''.join(c for c in modelid if c.isalnum())
         
         self.model = model_class.load_from_checkpoint(ckptpath, args=saved_args)
-        self.shortname = f"{modelid}_{saved_args.epochs}e_{saved_args.batch_size}b"
+        self.shortname = f"{modelid}_{epoch}e{saved_args.batch_size}b"
     
     def forecast(self, analysis, forcings, borders):
         analysis, forcings, borders = [torch.tensor(_) for _ in (analysis, forcings, borders)]
         analysis, forcings, borders = [_.unsqueeze(0).float() for _ in (analysis, forcings, borders)]
-        # print(f"Shapes: analysis={analysis.shape}, forcings={forcings.shape}, borders={borders.shape}")
-        forecast, _ = self.model.unroll_prediction(analysis, forcings, borders)
+        
+        with torch.no_grad():
+            forecast, _ = self.model.unroll_prediction(analysis, forcings, borders)
+        
         return forecast.squeeze().detach().numpy()
