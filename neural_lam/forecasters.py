@@ -8,6 +8,7 @@ import os
 import numpy as np
 import torch
 from neural_lam import package_rootdir
+from neural_lam import scalers
 from neural_lam.models.graph_lam import GraphLAM
 from neural_lam.models.hi_lam import HiLAM
 from neural_lam.models.hi_lam_parallel import HiLAMParallel
@@ -23,6 +24,11 @@ class Forecaster:
     """Abstract class for forecasters"""
     def __init__(self):
         self.shortname = self.__class__.__name__.lower()
+        
+        # Scalers for normalization
+        self.flux_scaler = scalers.IdentityScaler()
+        self.data_scaler = scalers.IdentityScaler()
+    
     
     def forecast(self, analysis, forcings, borders):
         return NotImplemented
@@ -62,6 +68,8 @@ class NeuralLAMforecaster(Forecaster):
         
         self.model = model_class.load_from_checkpoint(ckptpath, args=saved_args)
         self.shortname = f"{modelid}_{epoch}e{saved_args.batch_size}b"
+        self.flux_scaler = scalers.FluxScaler(saved_args.dataset)
+        self.data_scaler = scalers.DataScaler(saved_args.dataset)
     
     def forecast(self, analysis, forcings, borders):
         analysis, forcings, borders = [torch.tensor(_) for _ in (analysis, forcings, borders)]
