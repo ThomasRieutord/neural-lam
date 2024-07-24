@@ -79,7 +79,7 @@ if __name__ == "__main__":
     dataset_name = "meps_example"
     print(f"Testing scalers on dataset {dataset_name}")
     x = torch.rand(4, 256, 17)
-    for sc in [IdentityScaler(dataset_name), FluxScaler(dataset_name), DataScaler(dataset_name)]:
+    for sc in [IdentityScaler(), FluxScaler(dataset_name), DataScaler(dataset_name)]:
         y = sc.inverse_transform(x)
         x0 = sc.transform(y)
         assert (x - x0).sum() < 1e-5, f"Gap with original data exceeds threshold for {sc}"

@@ -67,14 +67,18 @@ class NeuralLAMforecaster(Forecaster):
         modelid = ''.join(c for c in modelid if c.isalnum())
         
         self.model = model_class.load_from_checkpoint(ckptpath, args=saved_args)
+        self.model.to(device)
+        self.device = device
         self.shortname = f"{modelid}_{epoch}e{saved_args.batch_size}b"
-        self.flux_scaler = scalers.FluxScaler(saved_args.dataset)
-        self.data_scaler = scalers.DataScaler(saved_args.dataset)
+        self.flux_scaler = scalers.FluxScaler(saved_args.dataset, device=device)
+        self.data_scaler = scalers.DataScaler(saved_args.dataset, device=device)
     
     def forecast(self, analysis, forcings, borders):
-        analysis, forcings, borders = [torch.tensor(_) for _ in (analysis, forcings, borders)]
+        print(f"Shapes: analysis {analysis.shape}, forcings {forcings.shape}, borders {borders.shape}")
+        analysis, forcings, borders = [torch.tensor(_, device=self.device) for _ in (analysis, forcings, borders)]
         analysis, forcings, borders = [_.unsqueeze(0).float() for _ in (analysis, forcings, borders)]
         
+        print(f"Shapes: analysis {analysis.shape}, forcings {forcings.shape}, borders {borders.shape}")
         with torch.no_grad():
             forecast, _ = self.model.unroll_prediction(analysis, forcings, borders)
         
