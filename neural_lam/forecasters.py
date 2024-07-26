@@ -7,6 +7,7 @@ Module defining the forecaster class. It is used to make weather forecasts in in
 import os
 import numpy as np
 import torch
+import time
 from neural_lam import package_rootdir
 from neural_lam import scalers
 from neural_lam.models.graph_lam import GraphLAM
@@ -22,21 +23,42 @@ MODELS = {
 
 class Forecaster:
     """Abstract class for forecasters"""
-    def __init__(self):
+    def __init__(self, timinglog = "stdout"):
+        self.timinglog = timinglog
         self.shortname = self.__class__.__name__.lower()
         
         # Scalers for normalization
         self.flux_scaler = scalers.IdentityScaler()
         self.data_scaler = scalers.IdentityScaler()
     
+    def timer(func):
+        """Decorator to convert input array to tensor and convert the output array back to numpy"""
+        def timer_wrapper(self, *args, **kwargs):
+            start = time.time()
+            result = func(self, *args, **kwargs)
+            stop = time.time()
+            
+            msg = f"Timing of {self.__class__.__name__}.{func.__name__}: {stop-start} s"
+            if self.timinglog == "stdout":
+                print(msg)
+            elif os.path.isfile(self.timinglog):
+                with open(self.timinglog, "a") as log:
+                    log.write(msg + "\n")
+                    
+            return result
+        return timer_wrapper
     
+    @timer
     def forecast(self, analysis, forcings, borders):
+        return self._forecast(analysis, forcings, borders)
+    
+    def _forecast(self, analysis, forcings, borders):
         return NotImplemented
 
 
 class Persistence(Forecaster):
     """Return the same weather as the analysis"""
-    def forecast(self, analysis, forcings, borders):
+    def _forecast(self, analysis, forcings, borders):
         return np.broadcast_to(analysis[1], borders.shape)
 
 
@@ -44,7 +66,7 @@ class GradientIncrement(Forecaster):
     """Takes the previous state plus an increment based on the gradient"""
     incrementcoeff = 0.1
     
-    def forecast(self, analysis, forcings, borders):
+    def _forecast(self, analysis, forcings, borders):
         nt, n_grid, nv = borders.shape
         forecast = np.zeros_like(borders)
         
@@ -58,7 +80,8 @@ class GradientIncrement(Forecaster):
 
 class NeuralLAMforecaster(Forecaster):
     """Make prediction from a pre-trained Neural-LAM model"""
-    def __init__(self, ckptpath, device ="cpu"):
+    def __init__(self, ckptpath, device ="cpu", timinglog = "stdout"):
+        super().__init__(timinglog)
         ckpt = torch.load(ckptpath, map_location=device)
         saved_args = ckpt["hyper_parameters"]["args"]
         epoch = ckpt["epoch"]
@@ -73,12 +96,10 @@ class NeuralLAMforecaster(Forecaster):
         self.flux_scaler = scalers.FluxScaler(saved_args.dataset, device=device)
         self.data_scaler = scalers.DataScaler(saved_args.dataset, device=device)
     
-    def forecast(self, analysis, forcings, borders):
-        print(f"Shapes: analysis {analysis.shape}, forcings {forcings.shape}, borders {borders.shape}")
+    def _forecast(self, analysis, forcings, borders):
         analysis, forcings, borders = [torch.tensor(_, device=self.device) for _ in (analysis, forcings, borders)]
         analysis, forcings, borders = [_.unsqueeze(0).float() for _ in (analysis, forcings, borders)]
         
-        print(f"Shapes: analysis {analysis.shape}, forcings {forcings.shape}, borders {borders.shape}")
         with torch.no_grad():
             forecast, _ = self.model.unroll_prediction(analysis, forcings, borders)
         
