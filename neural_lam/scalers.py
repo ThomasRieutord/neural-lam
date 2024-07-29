@@ -30,9 +30,9 @@ class _Scaler:
     def _with_numpy(func):
         """Decorator to convert input array to tensor and convert the output array back to numpy"""
         def wrapper(self, array):
-            array = torch.tensor(array)
+            array = torch.tensor(array, device = self.device)
             result = func(self, array)
-            return result.detach().numpy()
+            return result.detach().cpu().numpy()
         return wrapper
 
     @_with_numpy
@@ -49,6 +49,7 @@ class IdentityScaler(_Scaler):
     stats_files = []
     
     def __init__(self):
+        self.device = "cpu"
         self._load_stats()
     
     def _load_stats(self):
@@ -78,7 +79,7 @@ class DataScaler(_Scaler):
 if __name__ == "__main__":
     dataset_name = "meps_example"
     print(f"Testing scalers on dataset {dataset_name}")
-    x = torch.rand(4, 256, 17)
+    x = torch.randn(4, 256, 17)
     for sc in [IdentityScaler(), FluxScaler(dataset_name), DataScaler(dataset_name)]:
         y = sc.inverse_transform(x)
         x0 = sc.transform(y)
