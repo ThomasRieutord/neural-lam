@@ -38,9 +38,18 @@ class Forecaster:
             result = func(self, *args, **kwargs)
             stop = time.time()
             
-            msg = f"Timing of {self.__class__.__name__}.{func.__name__}: {stop-start} s"
+            msg = f"({self.__class__.__name__}.{func.__name__}: {round(stop-start, 5)} s)"
+            
             if self.timinglog == "stdout":
+                # Append the timing message at the end of the next line
+                # Source (29/07/2024): https://blog.finxter.com/how-to-overwrite-the-previous-print-to-stdout-in-python/
+                n_cols = os.get_terminal_size().columns
+                n_cols_msg = len(msg)
+                UP = "\033[1A"
+                END = f"\033[{n_cols - n_cols_msg}C"
+                print(END, end="")
                 print(msg)
+                print(UP, end="")
             elif os.path.isfile(self.timinglog):
                 with open(self.timinglog, "a") as log:
                     log.write(msg + "\n")
@@ -103,4 +112,4 @@ class NeuralLAMforecaster(Forecaster):
         with torch.no_grad():
             forecast, _ = self.model.unroll_prediction(analysis, forcings, borders)
         
-        return forecast.squeeze().detach().numpy()
+        return forecast.squeeze().detach().cpu().numpy()
