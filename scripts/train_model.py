@@ -184,6 +184,20 @@ def main():
         help="Number of example predictions to plot during evaluation "
         "(default: 1)",
     )
+    parser.add_argument(
+        "--gpus",
+        type=int,
+        default=1,
+        help="Number of accelerators to use in the training"
+        "(default: 1)",
+    )
+    parser.add_argument(
+        "--accumulate_grad_batches",
+        type=int,
+        default=1,
+        help="Number of batches accumulated to estimate the gradient (see pl.Trainer)"
+        "(default: 1)",
+    )
     args = parser.parse_args()
 
     # Asserts for arguments
@@ -272,6 +286,8 @@ def main():
     trainer = pl.Trainer(
         max_epochs=args.epochs,
         deterministic=True,
+        devices=args.gpus,
+        accumulate_grad_batches=args.accumulate_grad_batches,
         strategy="ddp",
         accelerator=device_name,
         logger=logger,
