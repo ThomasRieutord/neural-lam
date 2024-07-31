@@ -8,7 +8,7 @@ from torch import nn
 from tueplots import bundles, figsizes
 
 # First-party
-from neural_lam import constants, package_rootdir
+from neural_lam import constants, PACKAGE_ROOTDIR
 
 
 def load_dataset_stats(dataset_name, device="cpu"):
@@ -16,7 +16,7 @@ def load_dataset_stats(dataset_name, device="cpu"):
     Load arrays with stored dataset statistics from pre-processing
     """
     static_dir_path = os.path.join(
-        package_rootdir, "data", dataset_name, "static"
+        PACKAGE_ROOTDIR, "data", dataset_name, "static"
     )
 
     def loads_file(fn):
@@ -43,7 +43,7 @@ def load_static_data(dataset_name, device="cpu"):
     Load static files related to dataset
     """
     static_dir_path = os.path.join(
-        package_rootdir, "data", dataset_name, "static"
+        PACKAGE_ROOTDIR, "data", dataset_name, "static"
     )
 
     def loads_file(fn):
@@ -119,7 +119,7 @@ def load_graph(graph_name, device="cpu"):
     Load all tensors representing the graph
     """
     # Define helper lambda function
-    graph_dir_path = os.path.join(package_rootdir, "graphs", graph_name)
+    graph_dir_path = os.path.join(PACKAGE_ROOTDIR, "graphs", graph_name)
 
     def loads_file(fn):
         return torch.load(os.path.join(graph_dir_path, fn), map_location=device)

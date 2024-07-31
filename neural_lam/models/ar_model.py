@@ -9,7 +9,7 @@ import torch
 import wandb
 
 # First-party
-from neural_lam import package_rootdir, constants, metrics, utils, vis
+from neural_lam import PACKAGE_ROOTDIR, constants, metrics, utils, vis
 
 
 class ARModel(pl.LightningModule):
@@ -426,7 +426,7 @@ class ARModel(pl.LightningModule):
                 ):
                     fig.savefig(
                         os.path.join(
-                            package_rootdir,
+                            PACKAGE_ROOTDIR,
                             "logs",
                             f"{var_name}_example_{example_i}.png"
                         )
@@ -439,13 +439,13 @@ class ARModel(pl.LightningModule):
             torch.save(
                 pred_slice.cpu(),
                 os.path.join(
-                    package_rootdir, "logs", f"example_pred_{self.plotted_examples}.pt"
+                    PACKAGE_ROOTDIR, "logs", f"example_pred_{self.plotted_examples}.pt"
                 ),
             )
             torch.save(
                 target_slice.cpu(),
                 os.path.join(
-                    package_rootdir, "logs", f"example_target_{self.plotted_examples}.pt"
+                    PACKAGE_ROOTDIR, "logs", f"example_target_{self.plotted_examples}.pt"
                 ),
             )
 
@@ -472,11 +472,11 @@ class ARModel(pl.LightningModule):
         if prefix == "test":
             # Save pdf
             metric_fig.savefig(
-                os.path.join(package_rootdir, "logs", f"{full_log_name}.pdf")
+                os.path.join(PACKAGE_ROOTDIR, "logs", f"{full_log_name}.pdf")
             )
             # Save errors also as csv
             np.savetxt(
-                os.path.join(package_rootdir, "logs", f"{full_log_name}.csv"),
+                os.path.join(PACKAGE_ROOTDIR, "logs", f"{full_log_name}.csv"),
                 metric_tensor.cpu().numpy(),
                 delimiter=",",
             )
@@ -569,7 +569,7 @@ class ARModel(pl.LightningModule):
                 vis.plot_spatial_error(loss_map, self.interior_mask[:, 0])
                 for loss_map in mean_spatial_loss
             ]
-            pdf_loss_maps_dir = os.path.join(package_rootdir, "logs", "spatial_loss_maps")
+            pdf_loss_maps_dir = os.path.join(PACKAGE_ROOTDIR, "logs", "spatial_loss_maps")
             os.makedirs(pdf_loss_maps_dir, exist_ok=True)
             for t_i, fig in zip(
                 constants.VAL_STEP_LOG_ERRORS, pdf_loss_map_figs
@@ -578,7 +578,7 @@ class ARModel(pl.LightningModule):
             # save mean spatial loss as .pt file also
             torch.save(
                 mean_spatial_loss.cpu(),
-                os.path.join(package_rootdir, "logs", "mean_spatial_loss.pt"),
+                os.path.join(PACKAGE_ROOTDIR, "logs", "mean_spatial_loss.pt"),
             )
 
         self.spatial_loss_maps.clear()

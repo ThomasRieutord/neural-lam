@@ -6,7 +6,7 @@ https://github.com/ThomasRieutord/neural-lam
 """
 import os
 
-package_rootdir = os.path.dirname(os.path.realpath(__path__[0]))
+PACKAGE_ROOTDIR = os.path.dirname(os.path.realpath(__path__[0]))
 __version__ = "1.1.0"
 
 del os

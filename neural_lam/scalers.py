@@ -6,7 +6,7 @@ Inspired from the [Scikit-learn StandardScaler](https://scikit-learn.org/stable/
 """
 import os
 import torch
-from neural_lam import package_rootdir
+from neural_lam import PACKAGE_ROOTDIR
 
 
 class _Scaler:
@@ -16,7 +16,7 @@ class _Scaler:
     stats_files = ["diff_mean.pt", "diff_std.pt", "flux_stats.pt", "parameter_mean.pt", "parameter_std.pt"]
     
     def __init__(self, dataset_name, device = "cpu"):
-        static_dir_path = os.path.join(package_rootdir, "data", dataset_name, "static")
+        static_dir_path = os.path.join(PACKAGE_ROOTDIR, "data", dataset_name, "static")
         for filename in self.stats_files:
             assert os.path.isfile(os.path.join(static_dir_path, filename)), f"File {filename} is missing for dataset {dataset_name}. Have you run create_parameter_weights.py?"
 

@@ -10,7 +10,7 @@ import torch
 from lightning_fabric.utilities import seed
 
 # First-party
-from neural_lam import package_rootdir, utils
+from neural_lam import PACKAGE_ROOTDIR, utils
 from neural_lam.models.graph_lam import GraphLAM
 from neural_lam.models.hi_lam import HiLAM
 from neural_lam.models.hi_lam_parallel import HiLAMParallel
@@ -274,14 +274,14 @@ def main():
         f"{time.strftime('%m_%d_%H')}-{random_run_id:04d}"
     )
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath=os.path.join(package_rootdir, "saved_models", run_name),
+        dirpath=os.path.join(PACKAGE_ROOTDIR, "saved_models", run_name),
         filename="min_val_loss",
         monitor="val_mean_loss",
         mode="min",
         save_last=True,
     )
     logger = pl.loggers.TensorBoardLogger(
-        save_dir = package_rootdir+"/logs", name=run_name
+        save_dir = PACKAGE_ROOTDIR+"/logs", name=run_name
     )
     trainer = pl.Trainer(
         max_epochs=args.epochs,

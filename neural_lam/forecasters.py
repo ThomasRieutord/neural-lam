@@ -8,13 +8,13 @@ import os
 import numpy as np
 import torch
 import time
-from neural_lam import package_rootdir
+from neural_lam import PACKAGE_ROOTDIR
 from neural_lam import scalers
 from neural_lam.models.graph_lam import GraphLAM
 from neural_lam.models.hi_lam import HiLAM
 from neural_lam.models.hi_lam_parallel import HiLAMParallel
 
-MODEL_DIRECTORY = os.path.join(package_rootdir, "saved_models")
+MODEL_DIRECTORY = os.path.join(PACKAGE_ROOTDIR, "saved_models")
 MODELS = {
     "graph_lam": GraphLAM,
     "hi_lam": HiLAM,
