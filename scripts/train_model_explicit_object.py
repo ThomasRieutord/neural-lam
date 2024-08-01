@@ -3,7 +3,7 @@ import os
 import random
 import time
 from argparse import ArgumentParser
-from codecarbon import track_emissions
+from codecarbon import EmissionsTracker
 
 # Third-party
 import pytorch_lightning as pl
@@ -23,7 +23,10 @@ MODELS = {
     "hi_lam_parallel": HiLAMParallel,
 }
 
-@track_emissions(project_name="neurallam",measure_power_secs=120)
+tracker = EmissionsTracker()
+tracker.start()
+
+
 def main():
     """
     Main function for training and evaluating models
@@ -319,3 +322,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+emissions: float = tracker.stop()
+print(f"Emissions: {emissions} kg")

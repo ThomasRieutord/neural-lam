@@ -23,7 +23,8 @@ MODELS = {
     "hi_lam_parallel": HiLAMParallel,
 }
 
-@track_emissions(project_name="neurallam",measure_power_secs=120)
+
+@track_emissions(project_name="train_dataset")
 def main():
     """
     Main function for training and evaluating models
