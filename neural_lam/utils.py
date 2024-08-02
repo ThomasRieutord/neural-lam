@@ -435,5 +435,37 @@ def cleanup_experiments(min_epochs=2, max_loss=1000, remove_ckpt=False, remove_l
     if remove_logs:
         remove_stale_runnames(runnames_stale, logdir)
 
+def experiment_summary(run_names=None):
+    """Print some key variables in the checkpoints of run names.
+    
+    
+    Parameters
+    ----------
+    run_names: list of str
+        List of run names. If not provided, takes all the checkpoints available
+    """
+    if run_names is None:
+        ckpdir = os.path.join(PACKAGE_ROOTDIR, "saved_models")
+        run_names = os.listdir(ckpdir)
+
+    for run_name in run_names:
+        ckptpath = runname_to_checkpointpath(run_name)
+        ckpt = torch.load(ckptpath, map_location="cpu")
+        cbd = next(iter(ckpt['callbacks'].values()))
+        hp = vars(next(iter(ckpt['hyper_parameters'].values())))
+        msg = f"""
+-----------------------------------
+    {run_name}  
+-----------------------------------
+epoch={ckpt["epoch"]}
+global_step={ckpt["global_step"]}
+current_score={cbd["current_score"].item()}
+HYPER-PARAMETERS:
+""" + "\n".join(
+    [
+        f"  {k}={v}" for k,v in hp.items()
+    ]
+)
+        print(msg)
 
 # End of file
