@@ -1,4 +1,4 @@
-# Standard library
+    # Standard library
 import os
 from argparse import ArgumentParser
 
@@ -13,7 +13,7 @@ import torch_geometric as pyg
 from torch_geometric.utils.convert import from_networkx
 
 # First-party
-from neural_lam import package_rootdir
+from neural_lam import PACKAGE_ROOTDIR
 
 
 def plot_graph(graph, title=None):
@@ -191,9 +191,9 @@ def main():
 
     # Load grid positions
     static_dir_path = os.path.join(
-        package_rootdir, "data", args.dataset, "static"
+        PACKAGE_ROOTDIR, "data", args.dataset, "static"
     )
-    graph_dir_path = os.path.join(package_rootdir, "graphs", args.graph)
+    graph_dir_path = os.path.join(PACKAGE_ROOTDIR, "graphs", f"{args.graph}--{args.dataset}")
     os.makedirs(graph_dir_path, exist_ok=True)
 
     xy = np.load(os.path.join(static_dir_path, "nwp_xy.npy"))

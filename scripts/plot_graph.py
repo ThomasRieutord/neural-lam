@@ -46,7 +46,7 @@ def main():
     args = parser.parse_args()
 
     # Load graph data
-    hierarchical, graph_ldict = utils.load_graph(args.graph)
+    hierarchical, graph_ldict = utils.load_graph(f"{args.graph}--{args.dataset}")
     (
         g2m_edge_index,
         m2g_edge_index,

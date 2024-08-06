@@ -10,7 +10,7 @@ import torch
 from lightning_fabric.utilities import seed
 
 # First-party
-from neural_lam import constants, utils, package_rootdir
+from neural_lam import PACKAGE_ROOTDIR, utils
 from neural_lam.models.graph_lam import GraphLAM
 from neural_lam.models.hi_lam import HiLAM
 from neural_lam.models.hi_lam_parallel import HiLAMParallel
@@ -184,6 +184,20 @@ def main():
         help="Number of example predictions to plot during evaluation "
         "(default: 1)",
     )
+    parser.add_argument(
+        "--gpus",
+        type=int,
+        default=1,
+        help="Number of accelerators to use in the training"
+        "(default: 1)",
+    )
+    parser.add_argument(
+        "--accumulate_grad_batches",
+        type=int,
+        default=1,
+        help="Number of batches accumulated to estimate the gradient (see pl.Trainer)"
+        "(default: 1)",
+    )
     args = parser.parse_args()
 
     # Asserts for arguments
@@ -260,21 +274,20 @@ def main():
         f"{time.strftime('%m_%d_%H')}-{random_run_id:04d}"
     )
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath=os.path.join(package_rootdir, "saved_models", run_name),
+        dirpath=os.path.join(PACKAGE_ROOTDIR, "saved_models", run_name),
         filename="min_val_loss",
         monitor="val_mean_loss",
         mode="min",
         save_last=True,
     )
-    logger = pl.loggers.WandbLogger(
-        project=constants.WANDB_PROJECT,
-        name=run_name,
-        config=args,
-        save_dir=package_rootdir,
+    logger = pl.loggers.TensorBoardLogger(
+        save_dir = PACKAGE_ROOTDIR+"/logs", name=run_name
     )
     trainer = pl.Trainer(
         max_epochs=args.epochs,
         deterministic=True,
+        devices=args.gpus,
+        accumulate_grad_batches=args.accumulate_grad_batches,
         strategy="ddp",
         accelerator=device_name,
         logger=logger,
@@ -284,9 +297,9 @@ def main():
         precision=args.precision,
     )
 
-    # Only init once, on rank 0 only
-    if trainer.global_rank == 0:
-        utils.init_wandb_metrics(logger)  # Do after wandb.init
+    ## Only init once, on rank 0 only
+    #if trainer.global_rank == 0:
+    #    utils.init_wandb_metrics(logger)  # Do after wandb.init
 
     if args.eval:
         if args.eval == "val":

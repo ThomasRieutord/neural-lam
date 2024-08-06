@@ -1,5 +1,6 @@
 # Standard library
 import os
+import shutil
 
 # Third-party
 import numpy as np
@@ -8,7 +9,7 @@ from torch import nn
 from tueplots import bundles, figsizes
 
 # First-party
-from neural_lam import constants, package_rootdir
+from neural_lam import constants, PACKAGE_ROOTDIR
 
 
 def load_dataset_stats(dataset_name, device="cpu"):
@@ -16,7 +17,7 @@ def load_dataset_stats(dataset_name, device="cpu"):
     Load arrays with stored dataset statistics from pre-processing
     """
     static_dir_path = os.path.join(
-        package_rootdir, "data", dataset_name, "static"
+        PACKAGE_ROOTDIR, "data", dataset_name, "static"
     )
 
     def loads_file(fn):
@@ -43,7 +44,7 @@ def load_static_data(dataset_name, device="cpu"):
     Load static files related to dataset
     """
     static_dir_path = os.path.join(
-        package_rootdir, "data", dataset_name, "static"
+        PACKAGE_ROOTDIR, "data", dataset_name, "static"
     )
 
     def loads_file(fn):
@@ -119,7 +120,7 @@ def load_graph(graph_name, device="cpu"):
     Load all tensors representing the graph
     """
     # Define helper lambda function
-    graph_dir_path = os.path.join(package_rootdir, "graphs", graph_name)
+    graph_dir_path = os.path.join(PACKAGE_ROOTDIR, "graphs", graph_name)
 
     def loads_file(fn):
         return torch.load(os.path.join(graph_dir_path, fn), map_location=device)
@@ -275,3 +276,196 @@ def init_wandb_metrics(wandb_logger):
     experiment.define_metric("val_mean_loss", summary="min")
     for step in constants.VAL_STEP_LOG_ERRORS:
         experiment.define_metric(f"val_loss_unroll{step}", summary="min")
+
+
+def checkpointpath_to_runname(checkpoint_path):
+    """Return the run name from a checkpoint path
+
+
+    Parameters
+    ----------
+    checkpoint_path: str
+        Path to the corresponding checkpoint
+
+
+    Returns
+    -------
+    run_name: str
+        Run name or direct path to the checkpoint
+
+
+    Examples
+    --------
+    >>> # With experiment name
+    >>> checkpointpath_to_runname("saved_models/graph_lam-4x64-07_19_15-2217/min_val_loss.ckpt")
+    'graph_lam-4x64-07_19_15-2217'
+    """
+    return os.path.basename(os.path.dirname(checkpoint_path))
+
+
+def runname_to_checkpointpath(run_name):
+    """Return the absolute path to the checkpoint from a run name
+
+
+    Parameters
+    ----------
+    run_name: str
+        Run name or direct path to the checkpoint
+
+
+    Returns
+    -------
+    checkpoint_path: str
+        Absolute path to the corresponding checkpoint
+
+
+    Examples
+    --------
+    >>> # With experiment name
+    >>> runname_to_checkpointpath("graph_lam-4x64-07_19_15-2217")
+    '/.../neural-lam/saved_models/graph_lam-4x64-07_19_15-2217/min_val_loss.ckpt'
+    
+    >>> # With direct path
+    >>> runname_to_checkpointpath("saved_models/graph_lam-4x64-07_19_15-2217/min_val_loss.ckpt")
+    '/.../neural-lam/saved_models/graph_lam-4x64-07_19_15-2217/min_val_loss.ckpt'
+    """
+    candidates = [
+        os.path.abspath(run_name),
+        os.path.join(PACKAGE_ROOTDIR, "saved_models", run_name, "min_val_loss.ckpt")
+    ]
+
+    checkpoint_path = None
+    for candidate in candidates:
+        if os.path.isfile(candidate) and candidate.endswith(".ckpt"):
+            checkpoint_path = candidate
+            break
+
+    if checkpoint_path is None:
+        raise ValueError(f"Unable to find checkpoint for run_name={run_name}")
+
+    return checkpoint_path
+
+
+def get_stale_runnames(min_epochs=2, max_loss=1000):
+    """List stale run names.
+
+    Runs are considered as stale if there is no checkpoint or no log stored
+    or if they do not reach a minimum number of epochs or a loss threshold.
+
+
+    Parameters
+    ----------
+    min_epochs: int
+        Epoch threshold (runs below this threshold are seen as stale)
+    
+    max_loss: float
+        Loss threshold (runs above this threshold are seen as stale)
+
+
+    Returns
+    -------
+    runnames_stale: list of str
+        List of run names considered as stale
+    """
+    logdir = os.path.join(PACKAGE_ROOTDIR, "logs")
+    ckpdir = os.path.join(PACKAGE_ROOTDIR, "saved_models")
+    runnames_logs = os.listdir(logdir)
+    runnames_ckpt = os.listdir(ckpdir)
+
+    something_missing = set(runnames_logs + runnames_ckpt) - (set(runnames_logs) & set(runnames_ckpt))
+
+    not_good_enough = []
+    for run_name in runnames_ckpt:
+        ckptpath = runname_to_checkpointpath(run_name)
+        ckpt = torch.load(ckptpath, map_location="cpu")
+        cbd = next(iter(ckpt['callbacks'].values()))
+        if ckpt["epoch"] < min_epochs or cbd["current_score"].item() > max_loss:
+            not_good_enough.append(run_name)
+
+    return list(something_missing | set(not_good_enough))
+
+
+def remove_stale_runnames(runnames_stale, runnames_directory):
+    """Remove the runs listed as stale from the given directory.
+
+
+    Parameters
+    ----------
+    runnames_stale: list of str
+        List of run names considered as stale
+
+    runnames_directory: str
+        Path to the directory to clean
+    """
+    runnames = os.listdir(runnames_directory)
+    for run_name in runnames:
+        to_remove = os.path.join(runnames_directory, run_name)
+        if run_name in runnames_stale and os.path.isdir(to_remove):
+            shutil.rmtree(to_remove)
+            print(f"Removed: {to_remove}")
+
+
+def cleanup_experiments(min_epochs=2, max_loss=1000, remove_ckpt=False, remove_logs=False):
+    """Identify and remove stale runs. Use with caution.
+
+
+    Parameters
+    ----------
+    min_epochs: int
+        Epoch threshold (runs below this threshold are seen as stale)
+
+    max_loss: float
+        Loss threshold (runs above this threshold are seen as stale)
+
+    remove_ckpt: bool
+        If True, remove the checkpoints of the stale runs
+
+    remove_logs: bool
+        If True, remove the log files of the stale runs
+    """
+    logdir = os.path.join(PACKAGE_ROOTDIR, "logs")
+    ckpdir = os.path.join(PACKAGE_ROOTDIR, "saved_models")
+
+    runnames_stale = get_stale_runnames(min_epochs=min_epochs, max_loss=max_loss)
+    print(f"{len(runnames_stale)} stale runnames found: {runnames_stale}")
+
+    if remove_ckpt:
+        remove_stale_runnames(runnames_stale, ckpdir)
+
+    if remove_logs:
+        remove_stale_runnames(runnames_stale, logdir)
+
+def experiment_summary(run_names=None):
+    """Print some key variables in the checkpoints of run names.
+    
+    
+    Parameters
+    ----------
+    run_names: list of str
+        List of run names. If not provided, takes all the checkpoints available
+    """
+    if run_names is None:
+        ckpdir = os.path.join(PACKAGE_ROOTDIR, "saved_models")
+        run_names = os.listdir(ckpdir)
+
+    for run_name in run_names:
+        ckptpath = runname_to_checkpointpath(run_name)
+        ckpt = torch.load(ckptpath, map_location="cpu")
+        cbd = next(iter(ckpt['callbacks'].values()))
+        hp = vars(next(iter(ckpt['hyper_parameters'].values())))
+        msg = f"""
+-----------------------------------
+    {run_name}  
+-----------------------------------
+epoch={ckpt["epoch"]}
+global_step={ckpt["global_step"]}
+current_score={cbd["current_score"].item()}
+HYPER-PARAMETERS:
+""" + "\n".join(
+    [
+        f"  {k}={v}" for k,v in hp.items()
+    ]
+)
+        print(msg)
+
+# End of file

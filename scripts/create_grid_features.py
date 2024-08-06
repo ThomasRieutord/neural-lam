@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 # First-party
-from neural_lam import package_rootdir
+from neural_lam import PACKAGE_ROOTDIR
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
     args = parser.parse_args()
 
     static_dir_path = os.path.join(
-        package_rootdir, "data", args.dataset, "static"
+        PACKAGE_ROOTDIR, "data", args.dataset, "static"
     )
 
     # -- Static grid node features --

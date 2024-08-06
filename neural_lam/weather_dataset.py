@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 # First-party
-from neural_lam import constants, utils, package_rootdir
+from neural_lam import constants, utils, PACKAGE_ROOTDIR
 
 
 class WeatherDataset(torch.utils.data.Dataset):
@@ -76,10 +76,10 @@ class WeatherDataset(torch.utils.data.Dataset):
 
         assert split in ("train", "val", "test"), "Unknown dataset split"
         self.sample_dir_path = os.path.join(
-            package_rootdir, "data", dataset_name, "samples", split
+            PACKAGE_ROOTDIR, "data", dataset_name, "samples", split
         )
         cstfile = os.path.join(
-            package_rootdir, "data", dataset_name, "static", "constants.yaml"
+            PACKAGE_ROOTDIR, "data", dataset_name, "static", "constants.yaml"
         )
         with open(cstfile, "r") as yf:
             self.constants = yaml.safe_load(yf)
