@@ -5,7 +5,7 @@
 #SBATCH --output=pynf-%J.out
 #SBATCH --error=pynf-%J.out
 # Set the initial working directory
-#SBATCH --chdir=/scratch/dutr/spool
+#SBATCH --chdir=/scratch/dume/spool
 # Choose the queue
 #SBATCH --qos=nf
 #SBATCH --mem=32G
@@ -18,7 +18,7 @@ date
 echo "Running on $HOSTNAME:$PWD"
 
 module load conda
-mamba activate neurallam
+mamba activate neural_lam_v2
 
 echo "Env successfully loaded!"
 python --version

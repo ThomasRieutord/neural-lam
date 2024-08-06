@@ -5,7 +5,7 @@
 #SBATCH --output=creset-%J.out
 #SBATCH --error=creset-%J.out
 # Set the initial working directory
-#SBATCH --chdir=/scratch/dutr/spool
+#SBATCH --chdir=/scratch/dume/spool
 # Choose the queue
 #SBATCH --qos=nf
 #SBATCH --mem=32G
@@ -18,7 +18,7 @@ date
 echo "Running on $HOSTNAME:$PWD"
 
 module load conda
-mamba activate neurallam
+mamba activate neural_lam
 
 echo "Env successfully loaded!"
 python --version
@@ -29,10 +29,10 @@ SDATE=1991-01-02
 EDATE=2011-01-02
 SUBSAMPLE=1
 
-python $HOME/mera-explorer/scripts/create_static_features.py --indirclim $PERM/mera --outdirmllam $SCRATCH/neurallam-datasets/$DATASETNAME --subsample $SUBSAMPLE --writefiles
+python $HOME/mera-explorer/scripts/create_static_features.py --indirclim /perm/dutr/mera --outdirmllam $SCRATCH/neurallam-datasets/$DATASETNAME --subsample $SUBSAMPLE --writefiles
 
 date
 
-python $HOME/mera-explorer/scripts/create_mera_sample.py --indirclim $PERM/mera --indirgrib $SCRATCH --outdir $SCRATCH/neurallam-datasets/$DATASETNAME/samples --subsample $SUBSAMPLE --sdate $SDATE --edate $EDATE --writefiles
+python $HOME/mera-explorer/scripts/create_mera_sample.py --indirclim /perm/dutr/mera --indirgrib /scratch/dutr/mera --outdir $SCRATCH/neurallam/$DATASETNAME/samples --subsample $SUBSAMPLE --sdate $SDATE --edate $EDATE --writefiles
 
 date
