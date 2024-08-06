@@ -3,8 +3,8 @@
 # Run all required steps up to the training of Neural-LAM
 #
 
-DATASET=mera_example_emca
-BATCHSIZE=8
+DATASET=mera_example_emca_2km_2yr_clean
+BATCHSIZE=4
 EPOCHS=200
 N_WORKERS=8
 
