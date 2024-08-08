@@ -10,7 +10,7 @@ import torch
 from lightning_fabric.utilities import seed
 
 # First-party
-from neural_lam import PACKAGE_ROOTDIR, utils
+from neural_lam import PACKAGE_ROOTDIR, utils, callbacks
 from neural_lam.models.graph_lam import GraphLAM
 from neural_lam.models.hi_lam import HiLAM
 from neural_lam.models.hi_lam_parallel import HiLAMParallel
@@ -280,9 +280,12 @@ def main():
         mode="min",
         save_last=True,
     )
-    logger = pl.loggers.TensorBoardLogger(
-        save_dir = PACKAGE_ROOTDIR+"/logs", name=run_name
+    logger = pl.loggers.MLFlowLogger(
+        experiment_name="neural_lam",
+        tracking_uri="file:" + os.path.join(PACKAGE_ROOTDIR, "mlruns"),
+        run_name=run_name
     )
+    progress_bar = callbacks.LogfilefriendlyProgressBar()
     trainer = pl.Trainer(
         max_epochs=args.epochs,
         deterministic=True,
@@ -292,7 +295,7 @@ def main():
         accelerator=device_name,
         logger=logger,
         log_every_n_steps=1,
-        callbacks=[checkpoint_callback],
+        callbacks=[checkpoint_callback, progress_bar],
         check_val_every_n_epoch=args.val_interval,
         precision=args.precision,
     )
