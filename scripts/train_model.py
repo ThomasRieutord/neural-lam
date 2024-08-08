@@ -280,8 +280,10 @@ def main():
         mode="min",
         save_last=True,
     )
-    logger = pl.loggers.TensorBoardLogger(
-        save_dir = PACKAGE_ROOTDIR+"/logs", name=run_name
+    logger = pl.loggers.MLFlowLogger(
+        experiment_name="neural_lam",
+        tracking_uri="file:" + os.path.join(PACKAGE_ROOTDIR, "mlruns"),
+        run_name=run_name
     )
     progress_bar = callbacks.LogfilefriendlyProgressBar()
     trainer = pl.Trainer(
