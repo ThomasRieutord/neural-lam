@@ -29,7 +29,7 @@ date
 DATASET=mera_4years_fullres
 BATCHSIZE=4
 EPOCHS=10
-N_WORKERS=16
+N_WORKERS=8
 
 set -vx
 

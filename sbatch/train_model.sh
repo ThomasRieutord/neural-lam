@@ -26,13 +26,13 @@ echo "Env successfully loaded!"
 python --version
 date
 
-DATASET=mera_4years_fullres
+DATASET=mera_20years_fullres
 BATCHSIZE=2
-EPOCHS=20
+EPOCHS=200
 N_WORKERS=8
 
 set -vx
 
-python $HOME/neural-lam/scripts/train_model.py --dataset $DATASET --batch_size $BATCHSIZE --ar_steps 2 --step_length 1 --control_only 1 --epochs $EPOCHS --n_workers $N_WORKERS
+python $HOME/neural-lam/scripts/train_model.py --dataset $DATASET --batch_size $BATCHSIZE --ar_steps 2 --step_length 1 --control_only 1 --epochs $EPOCHS --n_workers $N_WORKERS --accumulate_grad_batches 10
 
 date

@@ -9,8 +9,8 @@
 # Choose the queue
 #SBATCH --qos=ng
 #SBATCH --gpus=1
-#SBATCH --cpus-per-gpu=8
-#SBATCH --mem=96GB
+#SBATCH --cpus-per-gpu=16
+#SBATCH --mem=128GB
 # Wall clock time limit
 #SBATCH --time=24:00:00
 # Send an email on failure
@@ -29,8 +29,8 @@ date
 DATASET=mera_20years_fullres
 BATCHSIZE=2
 EPOCHS=200
-N_WORKERS=8
-CHECKPOINT=/home/dutr/neural-lam/saved_models/graph_lam-4x64-08_03_09-3954/last-v1.ckpt
+N_WORKERS=16
+CHECKPOINT=graph_lam-4x64-08_08_11-4554
 
 set -vx
 

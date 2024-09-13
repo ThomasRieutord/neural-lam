@@ -24,7 +24,7 @@ echo "Env successfully loaded!"
 python --version
 date
 
-DATASET=mera_4years_fullres
+DATASET=mera_20years_fullres
 BATCHSIZE=8
 
 python $HOME/neural-lam/scripts/create_mesh.py --dataset $DATASET
