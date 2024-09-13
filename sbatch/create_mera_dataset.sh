@@ -10,7 +10,7 @@
 #SBATCH --qos=nf
 #SBATCH --mem=32G
 # Wall clock time limit
-#SBATCH --time=30:05:00
+#SBATCH --time=48:00:00
 # Send an email on failure
 #SBATCH --mail-type=FAIL
 # This is the job
@@ -24,15 +24,16 @@ echo "Env successfully loaded!"
 python --version
 date
 
-DATASETNAME=test_links
-SDATE=1991-01-02
-EDATE=1991-03-02
+DATASETNAME=mera_37years_24h
+SDATE=1981-01-02
+EDATE=2017-12-30
 SUBSAMPLE=1
+TEXTRACT=24h
 
 python $HOME/mera-explorer/scripts/create_static_features.py --outdir $SCRATCH/neurallam-datasets/$DATASETNAME --subsample $SUBSAMPLE --writefiles
 
 date
 
-python $HOME/mera-explorer/scripts/create_mera_sample.py --outdir $SCRATCH/neurallam-datasets/$DATASETNAME --subsample $SUBSAMPLE --sdate $SDATE --edate $EDATE --writefiles
+python $HOME/mera-explorer/scripts/create_mera_sample.py --outdir $SCRATCH/neurallam-datasets/$DATASETNAME --subsample $SUBSAMPLE --sdate $SDATE --edate $EDATE --textract $TEXTRACT --writefiles
 
 date
