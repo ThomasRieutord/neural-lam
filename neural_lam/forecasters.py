@@ -73,7 +73,7 @@ class Persistence(Forecaster):
 
 class GradientIncrement(Forecaster):
     """Takes the previous state plus an increment based on the gradient"""
-    incrementcoeff = 0.1
+    incrementcoeff = 0.9
     
     def _forecast(self, analysis, forcings, borders):
         nt, n_grid, nv = borders.shape
