@@ -261,20 +261,19 @@ def main():
     if args.eval:
         prefix = prefix + f"eval-{args.eval}-"
     
+    run_name = (
+        f"{prefix}{args.model}-{args.processor_layers}x{args.hidden_dim}-"
+        f"{time.strftime('%m_%d_%H')}-{random_run_id:04d}"
+    )
     if args.load:
         ckptpath = utils.runname_to_checkpointpath(args.load)
         model = model_class.load_from_checkpoint(ckptpath, args=args)
-        run_name = utils.checkpointpath_to_runname(ckptpath)
         if args.restore_opt:
             # Save for later
             # Unclear if this works for multi-GPU
             model.opt_state = torch.load(ckptpath)["optimizer_states"][0]
     else:
         model = model_class(args)
-        run_name = (
-            f"{prefix}{args.model}-{args.processor_layers}x{args.hidden_dim}-"
-            f"{time.strftime('%m_%d_%H')}-{random_run_id:04d}"
-        )
     
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=os.path.join(PACKAGE_ROOTDIR, "saved_models", run_name),
