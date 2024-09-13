@@ -104,10 +104,19 @@ class ARModel(pl.LightningModule):
             from codecarbon import EmissionsTracker
 
             self.emission_tracker = EmissionsTracker()
-            self.emission_tracker.start()
             self._energy_consumption = 0
             self._last_power_measurement_time = time.time()
             self._last_power_measurement = self.get_power_consumption()
+
+    def on_fit_start(self):
+        """Start the emission tracker, if any"""
+        if hasattr(self, "emission_tracker"):
+            self.emission_tracker.start()
+
+    def on_fit_end(self):
+        """Shutdown the emission tracker, if any"""
+        if hasattr(self, "emission_tracker"):
+            self.emission_tracker.stop()
 
     def configure_optimizers(self):
         opt = torch.optim.AdamW(
@@ -640,11 +649,6 @@ class ARModel(pl.LightningModule):
                 )
                 loaded_state_dict[new_key] = loaded_state_dict[old_key]
                 del loaded_state_dict[old_key]
-
-    def on_fit_end(self):
-        """Shutdown the emission tracker, if any"""
-        if hasattr(self, "emission_tracker"):
-            self.emission_tracker.stop()
 
     def get_power_consumption(self):
         """Return total power consumption from all devices in kilowatts"""
