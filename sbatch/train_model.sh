@@ -19,20 +19,24 @@
 date
 echo "Running on $HOSTNAME:$PWD"
 
-module load conda
-mamba activate neurallam
+# On reaserve, environment must be loaded before executing the code
+#module load conda
+#mamba activate neurallam
 
 echo "Env successfully loaded!"
 python --version
 date
 
-DATASET=mera_4years_fullres
+DATASET=mera_8years_fullres
+GRAPH=hierarchical
+MODEL=hi_lam
 BATCHSIZE=2
-EPOCHS=20
+EPOCHS=300
 N_WORKERS=8
+AR_STEPS=6
 
 set -vx
 
-python $HOME/neural-lam/scripts/train_model.py --dataset $DATASET --batch_size $BATCHSIZE --ar_steps 2 --step_length 1 --control_only 1 --epochs $EPOCHS --n_workers $N_WORKERS
+python $HOME/neural-lam/scripts/train_model.py --dataset $DATASET --graph $GRAPH --model $MODEL --batch_size $BATCHSIZE --ar_steps $AR_STEPS --step_length 1 --control_only 1 --epochs $EPOCHS --n_workers $N_WORKERS --track_emissions True
 
 date
