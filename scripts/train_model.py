@@ -198,6 +198,13 @@ def main():
         help="Number of batches accumulated to estimate the gradient (see pl.Trainer)"
         "(default: 1)",
     )
+    parser.add_argument(
+        "--track_emissions",
+        type=bool,
+        default=False,
+        help="Enable carbon emission tracking"
+        "(default: 1)",
+    )
     args = parser.parse_args()
 
     # Asserts for arguments
