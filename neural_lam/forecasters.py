@@ -8,6 +8,7 @@ import os
 import numpy as np
 import torch
 import time
+import shutil
 from neural_lam import PACKAGE_ROOTDIR
 from neural_lam import scalers
 from neural_lam.models.graph_lam import GraphLAM
@@ -43,7 +44,7 @@ class Forecaster:
             if self.timinglog == "stdout":
                 # Append the timing message at the end of the next line
                 # Source (29/07/2024): https://blog.finxter.com/how-to-overwrite-the-previous-print-to-stdout-in-python/
-                n_cols = os.get_terminal_size().columns
+                n_cols = shutil.get_terminal_size().columns
                 n_cols_msg = len(msg)
                 UP = "\033[1A"
                 END = f"\033[{n_cols - n_cols_msg}C"

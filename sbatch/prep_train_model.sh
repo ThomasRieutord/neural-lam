@@ -5,7 +5,7 @@
 #SBATCH --output=prelam-%J.out
 #SBATCH --error=prelam-%J.out
 # Set the initial working directory
-#SBATCH --chdir=/scratch/dutr/spool
+#SBATCH --chdir=/scratch/dume/spool
 # Choose the queue
 #SBATCH --qos=nf
 #SBATCH --mem=64GB
@@ -20,16 +20,18 @@ echo "Running on $HOSTNAME:$PWD"
 # On reaserve, environment must be loaded before executing the code
 #module load conda
 #mamba activate neurallam
+module load conda
+mamba activate mllam_v2
 
 echo "Env successfully loaded!"
 python --version
 date
 
-DATASET=mera_8years_fullres
-GRAPH=hierarchical
+DATASET=mera_10years_fullres
+GRAPH=hierarchical  #multiscale
 HIERARCHICAL=1
 LEVELS=4
-BATCHSIZE=8
+BATCHSIZE=8  #4
 
 python $HOME/neural-lam/scripts/create_mesh.py --dataset $DATASET --hierarchical $HIERARCHICAL --graph $GRAPH --levels $LEVELS
 python $HOME/neural-lam/scripts/create_grid_features.py --dataset $DATASET

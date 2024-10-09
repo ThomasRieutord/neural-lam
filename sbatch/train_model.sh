@@ -12,7 +12,7 @@
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem=96GB
 # Wall clock time limit
-#SBATCH --time=24:00:00
+#SBATCH --time=48:00:00
 # Send an email on failure
 #SBATCH --mail-type=FAIL
 # This is the job
@@ -20,7 +20,7 @@ date
 echo "Running on $HOSTNAME:$PWD"
 
 module load conda
-mamba activate neural_lam_2
+mamba activate neurallam
 # On reaserve, environment must be loaded before executing the code
 #module load conda
 #mamba activate neurallam
@@ -29,16 +29,15 @@ echo "Env successfully loaded!"
 python --version
 date
 
-DATASET=mera_example_emca_2km_2yr_clean
-MODEL=hi_lam
+DATASET=mera_10years_fullres
+MODEL=hi_lam # what other models>
 BATCHSIZE=2
-EPOCHS=300
+EPOCHS=150
 N_WORKERS=8
 GRAPH=multiscale
 AR_STEPS=6
 
 set -vx
 
-python $HOME/neural-lam/scripts/train_model.py --dataset $DATASET --graph $GRAPH --model $MODEL --batch_size $BATCHSIZE --ar_steps $AR_STEPS --step_length 1 --control_only 1 --epochs $EPOCHS --n_workers $N_WORKERS --track_emissions True
-
+python $HOME/neural-lam/scripts/train_model.py --dataset $DATASET --graph $GRAPH --model $MODEL --batch_size $BATCHSIZE --ar_steps $AR_STEPS --step_length 1 --control_only 1 --epochs $EPOCHS --n_workers $N_WORKERS --track_emissions False
 date
