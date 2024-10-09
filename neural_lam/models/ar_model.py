@@ -6,7 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
 import torch
+import time
+
 # import wandb
+
+# IF TRACKING EMISSIONS:
+# from codecarbon import EmissionsTracker
 
 # First-party
 from neural_lam import PACKAGE_ROOTDIR, constants, metrics, utils, vis
@@ -92,6 +97,26 @@ class ARModel(pl.LightningModule):
 
         # For storing spatial loss maps during evaluation
         self.spatial_loss_maps = []
+        
+        self.starting_time = time.time()
+        
+        if args.track_emissions:
+            from codecarbon import EmissionsTracker
+
+            self.emission_tracker = EmissionsTracker()
+            self._energy_consumption = 0
+            self._last_power_measurement_time = time.time()
+            self._last_power_measurement = self.get_power_consumption()
+
+    def on_fit_start(self):
+        """Start the emission tracker, if any"""
+        if hasattr(self, "emission_tracker"):
+            self.emission_tracker.start()
+
+    def on_fit_end(self):
+        """Shutdown the emission tracker, if any"""
+        if hasattr(self, "emission_tracker"):
+            self.emission_tracker.stop()
 
     def configure_optimizers(self):
         opt = torch.optim.AdamW(
@@ -214,6 +239,16 @@ class ARModel(pl.LightningModule):
         self.log_dict(
             log_dict, prog_bar=True, on_step=True, on_epoch=True, sync_dist=True
         )
+        self.log_dict(
+            {
+                "power_kW": self.get_power_consumption(),
+                "energy_kWh": self.energy_consumption,
+                "runtime": time.time() - self.starting_time
+            },
+            on_step=True,
+            on_epoch=False,
+            prog_bar=False,
+        )
         return batch_loss
 
     def all_gather_cat(self, tensor_to_gather):
@@ -249,6 +284,7 @@ class ARModel(pl.LightningModule):
             for step in constants.VAL_STEP_LOG_ERRORS
         }
         val_log_dict["val_mean_loss"] = mean_loss
+        val_log_dict["emissions_kgCO2"] = self.carbon_emissions
         self.log_dict(
             val_log_dict, on_step=False, on_epoch=True, sync_dist=True
         )
@@ -273,6 +309,11 @@ class ARModel(pl.LightningModule):
         # Clear lists with validation metrics values
         for metric_list in self.val_metrics.values():
             metric_list.clear()
+        
+        # Reset the power consumption without updating energy (remove the contribution of the validation step)
+        if hasattr(self, "emission_tracker"):
+            self._last_power_measurement_time = time.time()
+            self._last_power_measurement = self.get_power_consumption()
 
     # pylint: disable-next=unused-argument
     def test_step(self, batch, batch_idx):
@@ -414,21 +455,19 @@ class ARModel(pl.LightningModule):
 
                 example_i = self.plotted_examples
                 # wandb.log(
-                    # {
-                        # f"{var_name}_example_{example_i}": wandb.Image(fig)
-                        # for var_name, fig in zip(
-                            # constants.PARAM_NAMES_SHORT, var_figs
-                        # )
-                    # }
+                # {
+                # f"{var_name}_example_{example_i}": wandb.Image(fig)
+                # for var_name, fig in zip(
+                # constants.PARAM_NAMES_SHORT, var_figs
                 # )
-                for var_name, fig in zip(
-                    constants.PARAM_NAMES_SHORT, var_figs
-                ):
+                # }
+                # )
+                for var_name, fig in zip(constants.PARAM_NAMES_SHORT, var_figs):
                     fig.savefig(
                         os.path.join(
                             PACKAGE_ROOTDIR,
                             "logs",
-                            f"{var_name}_example_{example_i}.png"
+                            f"{var_name}_example_{example_i}.png",
                         )
                     )
                 plt.close(
@@ -439,13 +478,17 @@ class ARModel(pl.LightningModule):
             torch.save(
                 pred_slice.cpu(),
                 os.path.join(
-                    PACKAGE_ROOTDIR, "logs", f"example_pred_{self.plotted_examples}.pt"
+                    PACKAGE_ROOTDIR,
+                    "logs",
+                    f"example_pred_{self.plotted_examples}.pt",
                 ),
             )
             torch.save(
                 target_slice.cpu(),
                 os.path.join(
-                    PACKAGE_ROOTDIR, "logs", f"example_target_{self.plotted_examples}.pt"
+                    PACKAGE_ROOTDIR,
+                    "logs",
+                    f"example_target_{self.plotted_examples}.pt",
                 ),
             )
 
@@ -562,14 +605,16 @@ class ARModel(pl.LightningModule):
 
             # # log all to same wandb key, sequentially
             # for fig in loss_map_figs:
-                # wandb.log({"test_loss": wandb.Image(fig)})
+            # wandb.log({"test_loss": wandb.Image(fig)})
 
             # also make without title and save as pdf
             pdf_loss_map_figs = [
                 vis.plot_spatial_error(loss_map, self.interior_mask[:, 0])
                 for loss_map in mean_spatial_loss
             ]
-            pdf_loss_maps_dir = os.path.join(PACKAGE_ROOTDIR, "logs", "spatial_loss_maps")
+            pdf_loss_maps_dir = os.path.join(
+                PACKAGE_ROOTDIR, "logs", "spatial_loss_maps"
+            )
             os.makedirs(pdf_loss_maps_dir, exist_ok=True)
             for t_i, fig in zip(
                 constants.VAL_STEP_LOG_ERRORS, pdf_loss_map_figs
@@ -604,3 +649,49 @@ class ARModel(pl.LightningModule):
                 )
                 loaded_state_dict[new_key] = loaded_state_dict[old_key]
                 del loaded_state_dict[old_key]
+
+    def get_power_consumption(self):
+        """Return total power consumption from all devices in kilowatts"""
+        assert hasattr(
+            self, "emission_tracker"
+        ), f"System metrics are access through Codecarbon's emission tracker, which requires --track_emissions=True"
+
+        power_kW = 0
+        for device in self.emission_tracker._hardware:
+            power_kW += device.total_power().kW
+
+        return power_kW
+
+    def update_energy_consumption(self):
+        """Update measurements of energy consumption"""
+        assert hasattr(
+            self, "emission_tracker"
+        ), f"System metrics are access through Codecarbon's emission tracker, which requires --track_emissions=True"
+
+        new_power_measurement_time = time.time()
+        new_power_measurement = self.get_power_consumption()
+
+        #  E  = (P1 + P2)/2 * (t2 - t1)
+        # kWh       kW          hours
+        energy_increment = (
+            (new_power_measurement + self._last_power_measurement) / 2
+        ) * (
+            (new_power_measurement_time - self._last_power_measurement_time)
+            / 3600
+        )
+
+        self._energy_consumption += energy_increment
+        self._last_power_measurement = new_power_measurement
+        self._last_power_measurement_time = new_power_measurement_time
+
+    @property
+    def energy_consumption(self):
+        """The energy consumed by the devices since the instanciation of the model in kilowatthours"""
+        self.update_energy_consumption()
+        return self._energy_consumption
+
+    @property
+    def carbon_emissions(self):
+        """The estimated carbon emissions since the instanciation of the model in kgCO2"""
+        emissions = self.emission_tracker._prepare_emissions_data()
+        return emissions.emissions

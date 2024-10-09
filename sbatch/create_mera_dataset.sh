@@ -19,14 +19,17 @@ echo "Running on $HOSTNAME:$PWD"
 
 module load conda
 mamba activate neural_lam
+# On reaserve, environment must be loaded before executing the code
+#module load conda
+#mamba activate neurallam
 
 echo "Env successfully loaded!"
 python --version
 date
 
-DATASETNAME=mera_20years_fullres
-SDATE=1991-01-02
-EDATE=2011-01-02
+DATASETNAME=mera_8years_fullres
+SDATE=2000-01-02
+EDATE=2008-01-02
 SUBSAMPLE=1
 
 python $HOME/mera-explorer/scripts/create_static_features.py --indirclim /perm/dutr/mera --outdirmllam $SCRATCH/neurallam-datasets/$DATASETNAME --subsample $SUBSAMPLE --writefiles
