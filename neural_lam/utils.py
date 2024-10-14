@@ -2,6 +2,7 @@
 import os
 import string
 import shutil
+import inspect
 
 # Third-party
 import pandas as pd
@@ -499,5 +500,19 @@ HYPER-PARAMETERS:
     ]
 )
         print(msg)
+
+def get_line_info(abspath=False):
+    """Return the filename and the line number where it is called
+    
+    Source (2024/10/10): https://stackoverflow.com/questions/3056048/filename-and-line-number-of-python-script
+    """
+    filename = inspect.stack()[1][1]
+    linenum = inspect.stack()[1][2]
+    function = inspect.stack()[1][3]
+    
+    if not abspath:
+        filename = os.path.basename(filename)
+    
+    return f"{filename}:{linenum}:{function}"
 
 # End of file

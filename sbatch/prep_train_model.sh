@@ -18,18 +18,18 @@ date
 echo "Running on $HOSTNAME:$PWD"
 
 # On reaserve, environment must be loaded before executing the code
-#module load conda
-#mamba activate neurallam
+module load conda
+mamba activate neurallam
 
 echo "Env successfully loaded!"
 python --version
 date
 
-DATASET=mera_8years_fullres
+DATASET=mera_4years_fullres
 GRAPH=hierarchical
 HIERARCHICAL=1
-LEVELS=4
-BATCHSIZE=8
+LEVELS=3
+BATCHSIZE=4
 
 python $HOME/neural-lam/scripts/create_mesh.py --dataset $DATASET --hierarchical $HIERARCHICAL --graph $GRAPH --levels $LEVELS
 python $HOME/neural-lam/scripts/create_grid_features.py --dataset $DATASET
