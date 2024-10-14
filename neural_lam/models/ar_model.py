@@ -241,7 +241,7 @@ class ARModel(pl.LightningModule):
         )
         self.log_dict(
             {
-                "power_kW": self.get_power_consumption(),
+                "power_kW": self.power_consumption,
                 "energy_kWh": self.energy_consumption,
                 "runtime": time.time() - self.starting_time
             },
@@ -685,13 +685,27 @@ class ARModel(pl.LightningModule):
         self._last_power_measurement_time = new_power_measurement_time
 
     @property
+    def power_consumption(self):
+        """The energy consumed by the devices since the instanciation of the model in kilowatthours"""
+        if not hasattr(self, "emission_tracker"):
+            return np.nan
+        
+        return self.get_power_consumption()
+    
+    @property
     def energy_consumption(self):
         """The energy consumed by the devices since the instanciation of the model in kilowatthours"""
+        if not hasattr(self, "emission_tracker"):
+            return np.nan
+        
         self.update_energy_consumption()
         return self._energy_consumption
 
     @property
     def carbon_emissions(self):
         """The estimated carbon emissions since the instanciation of the model in kgCO2"""
+        if not hasattr(self, "emission_tracker"):
+            return np.nan
+        
         emissions = self.emission_tracker._prepare_emissions_data()
         return emissions.emissions
