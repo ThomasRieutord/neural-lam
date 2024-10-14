@@ -20,8 +20,8 @@ date
 echo "Running on $HOSTNAME:$PWD"
 
 # On reaserve, environment must be loaded before executing the code
-module load conda
-mamba activate neurallam
+#module load conda
+#mamba activate neurallam
 
 echo "Env successfully loaded!"
 python --version
@@ -38,20 +38,18 @@ echo "SLURM_CPUS_PER_GPU=$SLURM_CPUS_PER_GPU"
 
 # Hardware variables (must be equal to the SBATCH arguments)
 N_WORKERS=16
-N_GPUS=2
+N_GPUS=1
 
-DATASET=mera_37years_24h
+DATASET=mera_small_example
 GRAPH=hierarchical
 MODEL=hi_lam
 BATCHSIZE=2
-EPOCHS=60
+EPOCHS=3
 AR_STEPS=1
-STARTFROM=hi_lam-4x64-10_11_13-2725
 
 set -vx
 
-srun --cpus-per-gpu $N_WORKERS python $HOME/neural-lam/scripts/train_model.py \
---load $STARTFROM \
+python $HOME/neural-lam/scripts/train_model.py \
 --dataset $DATASET \
 --graph $GRAPH \
 --model $MODEL \
@@ -61,9 +59,6 @@ srun --cpus-per-gpu $N_WORKERS python $HOME/neural-lam/scripts/train_model.py \
 --control_only 1 \
 --epochs $EPOCHS \
 --n_workers $N_WORKERS \
---gpus $N_GPUS \
 --track_emissions True \
---restore_opt 1 \
---seed 756
 
 date

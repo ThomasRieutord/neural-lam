@@ -25,11 +25,11 @@ echo "Env successfully loaded!"
 python --version
 date
 
-DATASETNAME=mera_37years_24h
-SDATE=1981-01-02
-EDATE=2017-12-30
+DATASETNAME=mera_small_example
+SDATE=2015-03-02
+EDATE=2015-06-02
 SUBSAMPLE=1
-TEXTRACT=24h
+TEXTRACT=72h
 
 python $HOME/mera-explorer/scripts/create_static_features.py --outdir $SCRATCH/neurallam-datasets/$DATASETNAME --subsample $SUBSAMPLE --writefiles
 
