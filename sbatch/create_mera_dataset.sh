@@ -18,7 +18,7 @@ date
 echo "Running on $HOSTNAME:$PWD"
 
 module load conda
-mamba activate neurallam
+mamba activate mllam_v2
 # On reaserve, environment must be loaded before executing the code
 #module load conda
 #mamba activate neurallam

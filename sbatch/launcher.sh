@@ -18,7 +18,7 @@ date
 echo "Running on $HOSTNAME:$PWD"
 
 module load conda
-mamba activate neural_lam_v2
+mamba activate mllam_v2
 
 echo "Env successfully loaded!"
 python --version
