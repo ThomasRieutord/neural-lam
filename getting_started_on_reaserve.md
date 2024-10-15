@@ -5,22 +5,23 @@ The main additions to the procedure written in the original repo are the use of 
 It is assumed that the following commands are run on a Linux machine without root priviledges.
 While the step 1 can be skipped if you already have a clean Mamba environment with Python 3.9, the order of the following install must be respected (Mamba first, then pip)
 
-  * Last update: 10 Sep 2024 (Thomas Rieutord)
+  * Last update: 14 Oct 2024 (Thomas Rieutord)
 
 ## 1. Download the code bases
 
 In the current usage at Met Éireann, Neural-LAM relies on a few code bases that must be downloaded from Github.
 The current download uses HTTPS protocol, which is useful for reading the code only. If you plan to push any modification on the code bases, you should prefer SSH protocol.
 ```
+cd ~
 git clone https://github.com/ThomasRieutord/mera-explorer.git
 git clone https://github.com/ThomasRieutord/metplotlib.git
 git clone https://github.com/ThomasRieutord/neural-lam.git
 ```
 
-Then, make sure you are on the correct branch of the Neural-LAM repository. This doc refers to the branch `dev-tr`:
+Then, make sure you are on the correct branch of the Neural-LAM repository. This doc refers to the branch `met-eireann`:
 ```
-cd neural-lam
-git checkout dev-tr
+cd ~/neural-lam
+git checkout met-eireann
 ```
 Make sure the current file is present in your local directory before you continue.
 
@@ -29,11 +30,15 @@ Make sure the current file is present in your local directory before you continu
 If Mamba is not already installed, you can get it with the following commands:
 ```
 # OPTIONAL: don't you have it installed already?
-wget https://github.com/conda-forge/miniforge/releases/download/23.11.0-0/Mambaforge-23.11.0-0-Linux-x86_64.sh
-bash Mambaforge-23.11.0-0-Linux-x86_64.sh
+wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+bash Miniforge3-Linux-x86_64.sh
 ```
+Three questions will be asked during the installation:
+  1. Review and accept the licence (say yes)
+  2. Where do you wish to store the packages (default is $HOME, which is OK as long as it can host an extra ~15GB)
+  3. Do you want to run `conda init` (say yes)
 
-Once installed, create a new environment with Python 3.9:
+Once installed, reboot your terminal and create a new environment with Python 3.9:
 ```
 mamba create -n neurallam python=3.9
 mamba activate neurallam
@@ -42,8 +47,8 @@ mamba activate neurallam
 ## 3. Mamba installations
 
 ```
-mamba install --file neural-lam/requirements.txt
 mamba install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.8 -c pytorch -c nvidia
+mamba install --file neural-lam/requirements.txt
 mamba install eccodes cfgrib xarray h5py easydict paramiko netCDF4 h5py
 ```
 
@@ -55,9 +60,9 @@ Make sure to run all installations with Mamba prior to the ones with pip.
 pip install epygram climetlab tueplots mlflow
 pip install pyg-lib==0.2.0 torch-scatter==2.1.1 torch-sparse==0.6.17 torch-cluster==1.6.1 torch-geometric==2.3.1 -f https://pytorch-geometric.com/whl/torch-2.0.1+cu118.html
 pip install -e .
-cd ../mera-explorer #<mera-explorer directory containing the pyproject.toml>
+cd ~/mera-explorer #<mera-explorer directory containing the pyproject.toml>
 pip install -e .
-cd ../metplotlib #<metplotlib directory containing the setup.py>
+cd ~/metplotlib #<metplotlib directory containing the setup.py>
 pip install -e .
 ```
 
@@ -78,14 +83,11 @@ python -c "from mera_explorer import MERAROOTDIR;print(MERAROOTDIR)"
 For the **prepared datasets**, create a directory called `neurallam-datasets` in your data partition and link it to `data` in the Neural-LAM repository.
 ```
 mkdir /data/<username>/neurallam-datasets
-cd ../neural-lam # Make sure you are back to the directory containing the pyproject.toml
+cd ~/neural-lam # Make sure you are back to the directory containing the pyproject.toml
 ln -s /data/<username>/neurallam-datasets data
 ```
 
-For the **outputs**, if you don't already have one, create a `$SCRATCH` variable with a path to your data partition.
-```
-export SCRATCH=/data/<username>/scratch
-```
+For the **outputs**, the directory will be created under the directory indicated by the `$SCRATCH` variable, usually equal to `/data/<username>`.
 Models weights will be stored in the `saved_models` directory. Inference outputs will be stored in the `$SCRATCH/neurallam-inference-outputs` directory.
 
 ## 6. Use cases
@@ -105,17 +107,19 @@ Then, edit and run `sbatch/train_model.sh`.
 ### Make inference
 
 As this part is specific to MERA at the moment, the scripts for inference are in the mera-explorer code base.
+Inference can only be made with a pre-trained model, which is identified by its run name.
+In this tutorial, the run name we use is `graph_lam-4x64-09_03_18-2112` but it must be changed to one of the run names listed in the `~/neural-lam/saved_models` directory.
 If you are running inference for the first time, you must create the initial and boundary conditions from MERA. Otherwise you can skip this line.
 ```
-python ../mera-explorer/scripts/write_gribs_for_neurallam_init.py --sdate 2017-01-01 --edate 2017-12-29
+python ~/mera-explorer/scripts/write_gribs_for_neurallam_init.py --sdate 2017-01-01 --edate 2017-12-29
 ```
 
-To have a qualitative evalution of the forecast on the storm Ophelia (Oct 2017), use
+To have a qualitative evaluation of the forecast on the storm Ophelia (Oct 2017), use
 ```
-python ../mera-explorer/scripts/ophelia_forecast_plot.py --forecaster neurallam:graph_lam-4x64-09_03_18-2112 --figdir ophelia-figures
+python ~/mera-explorer/scripts/ophelia_forecast_plot.py --forecaster neurallam:graph_lam-4x64-09_03_18-2112 --figdir ophelia-figures
 ```
 
 To write inference output in GRIB later used in HARP, use
 ```
-python ../mera-explorer/scripts/make_fake_forecast.py --sdate 2017-01-01 --edate 2017-03-15 --max-leadtime 65h --forecaster neurallam:graph_lam-4x64-09_03_18-2112
+python ~/mera-explorer/scripts/make_fake_forecast.py --sdate 2017-01-01 --edate 2017-03-15 --max-leadtime 65h --forecaster neurallam:graph_lam-4x64-09_03_18-2112
 ```

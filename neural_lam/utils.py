@@ -1,8 +1,11 @@
 # Standard library
 import os
+import string
 import shutil
+import inspect
 
 # Third-party
+import pandas as pd
 import numpy as np
 import torch
 from torch import nn
@@ -277,6 +280,32 @@ def init_wandb_metrics(wandb_logger):
     for step in constants.VAL_STEP_LOG_ERRORS:
         experiment.define_metric(f"val_loss_unroll{step}", summary="min")
 
+def id_generator(
+    size=6, chars=string.ascii_lowercase + string.digits, forbidden="_"
+) -> str:
+    """Generate random strings of characters and digits than can be used as
+    unique identifier
+
+
+    Parameters
+    ----------
+    size: int
+        Length of the returned string of characters
+
+    chars: list
+        Admissible characters. Default are lower-case alphanumeric ASCII characters
+
+
+    Returns
+    -------
+    idstr: str
+        String of `size` characters randomly taken among `chars`
+    """
+    idstr = "".join([random.choice(chars) for _ in range(size)])
+    while forbidden in idstr:
+        idstr = "".join([random.choice(chars) for _ in range(size)])
+
+    return idstr
 
 def checkpointpath_to_runname(checkpoint_path):
     """Return the run name from a checkpoint path
@@ -404,6 +433,10 @@ def remove_stale_runnames(runnames_stale, runnames_directory):
             shutil.rmtree(to_remove)
             print(f"Removed: {to_remove}")
 
+def get_learningcurves_from_csv(csvfile):
+    raw = pd.read_csv(csvfile)
+    grouped = raw.groupby("key").apply(lambda x: x.value.values, include_groups=False)
+    return grouped.to_dict()
 
 def cleanup_experiments(min_epochs=2, max_loss=1000, remove_ckpt=False, remove_logs=False):
     """Identify and remove stale runs. Use with caution.
@@ -467,5 +500,19 @@ HYPER-PARAMETERS:
     ]
 )
         print(msg)
+
+def get_line_info(abspath=False):
+    """Return the filename and the line number where it is called
+    
+    Source (2024/10/10): https://stackoverflow.com/questions/3056048/filename-and-line-number-of-python-script
+    """
+    filename = inspect.stack()[1][1]
+    linenum = inspect.stack()[1][2]
+    function = inspect.stack()[1][3]
+    
+    if not abspath:
+        filename = os.path.basename(filename)
+    
+    return f"{filename}:{linenum}:{function}"
 
 # End of file

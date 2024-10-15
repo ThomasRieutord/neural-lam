@@ -2,6 +2,7 @@
 import os
 import random
 import time
+import psutil
 from argparse import ArgumentParser
 
 # Third-party
@@ -202,8 +203,7 @@ def main():
         "--track_emissions",
         type=bool,
         default=False,
-        help="Enable carbon emission tracking"
-        "(default: 1)",
+        help="Enable carbon emission tracking (default: False)",
     )
     args = parser.parse_args()
 
@@ -264,22 +264,25 @@ def main():
 
     # Load model parameters Use new args for model
     model_class = MODELS[args.model]
-    if args.load:
-        model = model_class.load_from_checkpoint(args.load, args=args)
-        if args.restore_opt:
-            # Save for later
-            # Unclear if this works for multi-GPU
-            model.opt_state = torch.load(args.load)["optimizer_states"][0]
-    else:
-        model = model_class(args)
-
     prefix = "subset-" if args.subset_ds else ""
     if args.eval:
         prefix = prefix + f"eval-{args.eval}-"
+    
     run_name = (
         f"{prefix}{args.model}-{args.processor_layers}x{args.hidden_dim}-"
         f"{time.strftime('%m_%d_%H')}-{random_run_id:04d}"
     )
+    print(f"[{utils.get_line_info()}] Starting run {run_name}")
+    if args.load:
+        ckptpath = utils.runname_to_checkpointpath(args.load)
+        model = model_class.load_from_checkpoint(ckptpath, args=args)
+        if args.restore_opt:
+            # Save for later
+            # Unclear if this works for multi-GPU
+            model.opt_state = torch.load(ckptpath)["optimizer_states"][0]
+    else:
+        model = model_class(args)
+    
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=os.path.join(PACKAGE_ROOTDIR, "saved_models", run_name),
         filename="min_val_loss",
@@ -292,6 +295,7 @@ def main():
         tracking_uri="file:" + os.path.join(PACKAGE_ROOTDIR, "mlruns"),
         run_name=run_name
     )
+    
     progress_bar = callbacks.LogfilefriendlyProgressBar()
     trainer = pl.Trainer(
         max_epochs=args.epochs,
@@ -306,6 +310,13 @@ def main():
         check_val_every_n_epoch=args.val_interval,
         precision=args.precision,
     )
+    ram = psutil.virtual_memory()
+    used_gb = ram.used/1e9
+    total_gb = ram.total/1e9
+    print(f"[{utils.get_line_info()}] Memory info: {used_gb} GB / {total_gb} GB used.")
+    n_cpus = psutil.cpu_count()
+    percent_cpu = psutil.cpu_percent()
+    print(f"[{utils.get_line_info()}] CPU info: {percent_cpu} % of {n_cpus} devices used.")
 
     ## Only init once, on rank 0 only
     #if trainer.global_rank == 0:
@@ -328,7 +339,7 @@ def main():
                 num_workers=args.n_workers,
             )
 
-        print(f"Running evaluation on {args.eval}")
+        print(f"[{utils.get_line_info()}] Running evaluation on {args.eval}")
         trainer.test(model=model, dataloaders=eval_loader)
     else:
         # Train model

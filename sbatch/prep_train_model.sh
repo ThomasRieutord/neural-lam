@@ -33,6 +33,12 @@ HIERARCHICAL=1
 LEVELS=4
 BATCHSIZE=8  #4
 
+#DATASET=mera_small_example
+#GRAPH=hierarchical
+#HIERARCHICAL=1
+#LEVELS=3
+#BATCHSIZE=4
+
 python $HOME/neural-lam/scripts/create_mesh.py --dataset $DATASET --hierarchical $HIERARCHICAL --graph $GRAPH --levels $LEVELS
 python $HOME/neural-lam/scripts/create_grid_features.py --dataset $DATASET
 python $HOME/neural-lam/scripts/create_parameter_weights.py --dataset $DATASET --batch_size $BATCHSIZE --step_length 1
