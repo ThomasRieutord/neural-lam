@@ -5,7 +5,7 @@ The main additions to the procedure written in the original repo are the use of 
 It is assumed that the following commands are run on a Linux machine without root priviledges.
 While the step 1 can be skipped if you already have a clean Mamba environment with Python 3.9, the order of the following install must be respected (Mamba first, then pip)
 
-  * Last update: 14 Oct 2024 (Thomas Rieutord)
+  * Last update: 15 Oct 2024 (Thomas Rieutord)
 
 ## 1. Download the code bases
 
@@ -47,8 +47,9 @@ mamba activate neurallam
 ## 3. Mamba installations
 
 ```
+cd ~/neural-lam
+mamba install --file requirements.txt
 mamba install pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.8 -c pytorch -c nvidia
-mamba install --file neural-lam/requirements.txt
 mamba install eccodes cfgrib xarray h5py easydict paramiko netCDF4 h5py
 ```
 
@@ -59,6 +60,8 @@ Make sure to run all installations with Mamba prior to the ones with pip.
 ```
 pip install epygram climetlab tueplots mlflow
 pip install pyg-lib==0.2.0 torch-scatter==2.1.1 torch-sparse==0.6.17 torch-cluster==1.6.1 torch-geometric==2.3.1 -f https://pytorch-geometric.com/whl/torch-2.0.1+cu118.html
+
+cd ~/neural-lam #<neural-lam directory containing the pyproject.toml>
 pip install -e .
 cd ~/mera-explorer #<mera-explorer directory containing the pyproject.toml>
 pip install -e .
@@ -69,7 +72,7 @@ pip install -e .
 ## 5. Set up links for inputs and outputs
 
 For the **bulk inputs**, The MERA are stored in different location depending on the machine you use. This document gives the ones for Reaserve.
-Edit the file `../mera-explorer/local/paths.txt` and put the following values:
+Edit the file `~/mera-explorer/local/paths.txt` and put the following values:
 ```
 MERAROOTDIR = "/data/trieutord/MERA/grib-all" # Parent directory of all MERA GRIB files
 MERACLIMDIR = "/data/trieutord/MERA/meraclim" # Directory where are stored climatology data (in particular the m05.grib)
@@ -90,19 +93,40 @@ ln -s /data/<username>/neurallam-datasets data
 For the **outputs**, the directory will be created under the directory indicated by the `$SCRATCH` variable, usually equal to `/data/<username>`.
 Models weights will be stored in the `saved_models` directory. Inference outputs will be stored in the `$SCRATCH/neurallam-inference-outputs` directory.
 
+Last, be aware the index files created when reading GRIB will be written in the `~/tmp` directory, in case it causes any problem.
+
+
 ## 6. Use cases
 
 You are now ready to use Neural-LAM on Reaserve. Some scripts already exist for the current use cases.
 
 ### Create datasets
 
-Edit and run the script `sbatch/create_mera_dataset.sh`
+Edit and run the script `~/neural-lam/sbatch/create_mera_dataset.sh`:
+```
+mamba activate neurallam
+cd ~/neural-lam/sbatch
+bash create_mera_dataset.sh
+```
+#### Troubleshooting
+If the following error occur (or similar) when importing Pandas:
+```
+ImportError: /lib64/libstdc++.so.6: version `GLIBCXX_3.4.29' not found
+```
+You can solve it with updating the variable LD_LIBRARY_PATH, as explained [here](https://stackoverflow.com/questions/58424974/anaconda-importerror-usr-lib64-libstdc-so-6-version-glibcxx-3-4-21-not-fo).
+```
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/mambaforge/lib
+```
+However, be aware that the path might slightly different from one user to another, as it is made from the one you put at the installation of Mamba.
+Moreover, some users experienced some issues with SSH when this variable was modified (the error looks like `/usr/bin/ssh: symbol lookup error: /usr/bin/ssh: undefined symbol: EVP_KDF_ctrl, version OPENSSL_1_1_1b`).
+Restart your shell without export the variable to fix SSH.
 
 ### Train a model
 
-If you are training a model on a given dataset for the first time, edit and run `sbatch/prep_train_model.sh`.
+If you are training a model on a given dataset for the first time, edit and run `~/neural-lam/sbatch/prep_train_model.sh`.
 If you already did a training on the same dataset, you can skip it.
-Then, edit and run `sbatch/train_model.sh`.
+Then, edit and run `~/neural-lam/sbatch/train_model.sh`.
+
 
 ### Make inference
 
