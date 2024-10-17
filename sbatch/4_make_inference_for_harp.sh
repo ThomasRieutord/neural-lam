@@ -1,16 +1,16 @@
 #!/bin/bash
 # The job name
-#SBATCH --job-name=pynf
+#SBATCH --job-name=makast
 # Set the error and output files
-#SBATCH --output=pynf-%J.out
-#SBATCH --error=pynf-%J.out
+#SBATCH --output=makast-%J.out
+#SBATCH --error=makast-%J.out
 # Set the initial working directory
 #SBATCH --chdir=/scratch/dutr/spool
 # Choose the queue
 #SBATCH --qos=nf
-#SBATCH --mem=32G
+#SBATCH --mem=64G
 # Wall clock time limit
-#SBATCH --time=01:05:00
+#SBATCH --time=30:05:00
 # Send an email on failure
 #SBATCH --mail-type=FAIL
 # This is the job
@@ -24,6 +24,10 @@ echo "Env successfully loaded!"
 python --version
 date
 
-python $HOME/neural-lam/scripts/create_parameter_weights.py --dataset mera_dataset_10years --batch_size 4 --step_length 3
+SDATE=2017-01-01
+EDATE=2017-02-01
+MAXLDT=65h
+
+python $HOME/mera-explorer/scripts/make_inference_forecast.py --sdate $SDATE --edate $EDATE --max-leadtime $MAXLDT --forecaster neurallam
 
 date

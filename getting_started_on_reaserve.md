@@ -5,7 +5,7 @@ The main additions to the procedure written in the original repo are the use of 
 It is assumed that the following commands are run on a Linux machine without root priviledges.
 While the step 1 can be skipped if you already have a clean Mamba environment with Python 3.9, the order of the following install must be respected (Mamba first, then pip)
 
-  * Last update: 15 Oct 2024 (Thomas Rieutord)
+  * Last update: 17 Oct 2024 (Thomas Rieutord)
 
 ## 1. Download the code bases
 
@@ -102,11 +102,11 @@ You are now ready to use Neural-LAM on Reaserve. Some scripts already exist for 
 
 ### Create datasets
 
-Edit and run the script `~/neural-lam/sbatch/create_mera_dataset.sh`:
+Edit and run the script `~/neural-lam/sbatch/1_create_mera_dataset.sh`:
 ```
 mamba activate neurallam
 cd ~/neural-lam/sbatch
-bash create_mera_dataset.sh
+bash 1_create_mera_dataset.sh
 ```
 #### Troubleshooting
 If the following error occur (or similar) when importing Pandas:
@@ -123,9 +123,9 @@ Restart your shell without export the variable to fix SSH.
 
 ### Train a model
 
-If you are training a model on a given dataset for the first time, edit and run `~/neural-lam/sbatch/prep_train_model.sh`.
+If you are training a model on a given dataset for the first time, edit and run `~/neural-lam/sbatch/2_prep_train_model.sh`.
 If you already did a training on the same dataset, you can skip it.
-Then, edit and run `~/neural-lam/sbatch/train_model.sh`.
+Then, edit and run `~/neural-lam/sbatch/3_train_model.sh`.
 
 
 ### Make inference
@@ -145,5 +145,5 @@ python ~/mera-explorer/scripts/ophelia_forecast_plot.py --forecaster neurallam:g
 
 To write inference output in GRIB later used in HARP, use
 ```
-python ~/mera-explorer/scripts/make_fake_forecast.py --sdate 2017-01-01 --edate 2017-03-15 --max-leadtime 65h --forecaster neurallam:graph_lam-4x64-09_03_18-2112
+python ~/mera-explorer/scripts/make_inference_forecast.py --sdate 2017-01-01 --edate 2017-03-15 --max-leadtime 65h --forecaster neurallam:graph_lam-4x64-09_03_18-2112
 ```
