@@ -60,7 +60,7 @@ MODEL=graph_lam   # graph_lam, hi_lam or hi_lam_parallel
 BATCHSIZE=2
 EPOCHS=100
 AR_STEPS=1
-#STARTFROM= 
+#STARTFROM=hi_lam-4x64-10_16_09-0629
 
 set -vx
 
@@ -75,7 +75,8 @@ srun --cpus-per-gpu $N_WORKERS python $HOME/neural-lam/scripts/train_model.py \
 --epochs $EPOCHS \
 --n_workers $N_WORKERS \
 --track_emissions False \
+--gpus $N_GPUS \
 --restore_opt 1 \
---seed 756
+--seed 233
 
 date

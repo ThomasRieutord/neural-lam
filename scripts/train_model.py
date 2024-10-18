@@ -205,6 +205,11 @@ def main():
         default=False,
         help="Enable carbon emission tracking (default: False)",
     )
+    parser.add_argument(
+        "--country",
+        default="IRL",
+        help="Enable carbon emission tracking (default: False)",
+    )
     args = parser.parse_args()
 
     # Asserts for arguments
