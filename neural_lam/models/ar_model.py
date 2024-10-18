@@ -101,9 +101,9 @@ class ARModel(pl.LightningModule):
         self.starting_time = time.time()
         
         if args.track_emissions:
-            from codecarbon import EmissionsTracker
+            from codecarbon import OfflineEmissionsTracker
 
-            self.emission_tracker = EmissionsTracker()
+            self.emission_tracker = OfflineEmissionsTracker(country_iso_code=args.country)
             self._energy_consumption = 0
             self._last_power_measurement_time = time.time()
             self._last_power_measurement = self.get_power_consumption()

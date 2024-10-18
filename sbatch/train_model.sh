@@ -46,7 +46,7 @@ MODEL=hi_lam
 BATCHSIZE=2
 EPOCHS=60
 AR_STEPS=1
-STARTFROM=hi_lam-4x64-10_11_13-2725
+STARTFROM=hi_lam-4x64-10_16_09-0629
 
 set -vx
 
@@ -63,7 +63,8 @@ srun --cpus-per-gpu $N_WORKERS python $HOME/neural-lam/scripts/train_model.py \
 --n_workers $N_WORKERS \
 --gpus $N_GPUS \
 --track_emissions True \
+--country ITA \
 --restore_opt 1 \
---seed 756
+--seed 233
 
 date
