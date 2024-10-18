@@ -27,11 +27,11 @@ echo "Env successfully loaded!"
 python --version
 date
 
-DATASET=mera_10years_fullres
-GRAPH=hierarchical  #multiscale
-HIERARCHICAL=1
-LEVELS=4
-BATCHSIZE=8  #4
+DATASET=mera_3years_fullres
+GRAPH=multiscale  #hierarchical  multiscale
+HIERARCHICAL=0 # 0 no or 1 yes
+#LEVELS=4  # None - no limit
+BATCHSIZE=2  #4
 
 #DATASET=mera_small_example
 #GRAPH=hierarchical
@@ -39,7 +39,8 @@ BATCHSIZE=8  #4
 #LEVELS=3
 #BATCHSIZE=4
 
-python $HOME/neural-lam/scripts/create_mesh.py --dataset $DATASET --hierarchical $HIERARCHICAL --graph $GRAPH --levels $LEVELS
+python $HOME/neural-lam/scripts/create_mesh.py --dataset $DATASET --hierarchical $HIERARCHICAL --graph $GRAPH 
+#--levels $LEVELS
 python $HOME/neural-lam/scripts/create_grid_features.py --dataset $DATASET
 python $HOME/neural-lam/scripts/create_parameter_weights.py --dataset $DATASET --batch_size $BATCHSIZE --step_length 1
 

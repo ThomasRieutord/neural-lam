@@ -52,18 +52,19 @@ echo "SLURM_CPUS_PER_GPU=$SLURM_CPUS_PER_GPU"
 
 # Hardware variables (must be equal to the SBATCH arguments)
 N_WORKERS=16
-N_GPUS=1
+N_GPUS=2
 
-DATASET=mera_small_example
-GRAPH=hierarchical
-MODEL=hi_lam
+DATASET=mera_3years_fullres
+GRAPH=multiscale
+MODEL=graph_lam   # graph_lam, hi_lam or hi_lam_parallel
 BATCHSIZE=2
-EPOCHS=3
+EPOCHS=100
 AR_STEPS=1
+#STARTFROM= 
 
 set -vx
 
-python $HOME/neural-lam/scripts/train_model.py \
+srun --cpus-per-gpu $N_WORKERS python $HOME/neural-lam/scripts/train_model.py \
 --dataset $DATASET \
 --graph $GRAPH \
 --model $MODEL \
@@ -74,5 +75,7 @@ python $HOME/neural-lam/scripts/train_model.py \
 --epochs $EPOCHS \
 --n_workers $N_WORKERS \
 --track_emissions False \
+--restore_opt 1 \
+--seed 756
 
 date
