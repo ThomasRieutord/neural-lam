@@ -64,6 +64,9 @@ pip install -e mera-explorer/.
 pip install -e metplotlib/.
 ```
 
+**NB:** to get out of your environment and retrieve the default Python installationm the command is `deactivate`.
+Make sure to activate your environment prior to use Neural-LAM.
+
 ### 1.5 Set up links for inputs and outputs
 
 For the **bulk inputs**, The MERA are stored in different location depending on the machine you use. This document gives the ones for Reaserve.
@@ -120,7 +123,7 @@ You are now ready to use Neural-LAM on Reaserve. Some scripts already exist for 
 
 Edit and run the script `~/neural-lam/sbatch/1_create_mera_dataset.sh`:
 ```
-mamba activate neurallam
+venv-activate neurallam
 cd ~/neural-lam/sbatch
 bash 1_create_mera_dataset.sh
 ```
