@@ -7,6 +7,11 @@ https://github.com/ThomasRieutord/neural-lam
 import os
 
 PACKAGE_ROOTDIR = os.path.dirname(os.path.realpath(__path__[0]))
-__version__ = "1.1.0"
 
-del os
+with open(os.path.join(PACKAGE_ROOTDIR, "pyproject.toml"), "r") as f:
+    for l in f.readlines():
+        if "version =" in l:
+            __version__ = l.split('"')[1]
+            break
+
+del f, l, os
