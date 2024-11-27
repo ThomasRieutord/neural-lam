@@ -50,7 +50,7 @@ source ~/.bashrc
 
 After restarting your shell, you will be able to create a new environment with the following command.
 ```
-venv-create neurallam --upgrade-pip
+venv-create neurallam python3.11 --upgrade-pip
 ```
 
 ### 1.4 Install the packages in your environment
@@ -59,7 +59,7 @@ venv-create neurallam --upgrade-pip
 ```
 venv-activate neurallam
 
-pip install -e neural-lam/.
+pip install -e "neural-lam/.[dev,meteireann]"
 pip install -e mera-explorer/.
 pip install -e metplotlib/.
 ```
