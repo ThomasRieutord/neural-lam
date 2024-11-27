@@ -90,7 +90,27 @@ Models weights will be stored in the `saved_models` directory. Inference outputs
 
 Last, be aware the index files created when reading GRIB will be written in the `~/tmp` directory, in case it causes any problem.
 
+### 1.6 Check the installation
 
+You can check the installation by running the testing program `import_tests.py` (within your environment):
+```
+python tests/import_tests.py
+```
+The result should look like this:
+```
+(neurallam) [trieutord@reaserve neural-lam]$ python tests/import_tests.py 
+
+ --- THIRD PARTIES ---
+<module 'numpy' from '/data/trieutord/venvs/neurallam/lib64/python3.9/site-packages/numpy/__init__.py'> version=2.0.2
+<module 'pandas' from '/data/trieutord/venvs/neurallam/lib64/python3.9/site-packages/pandas/__init__.py'> version=2.2.3
+<module 'torch' from '/data/trieutord/venvs/neurallam/lib64/python3.9/site-packages/torch/__init__.py'> version=2.5.1+cu124
+<module 'torch_geometric' from '/data/trieutord/venvs/neurallam/lib64/python3.9/site-packages/torch_geometric/__init__.py'> version=2.3.1
+
+ --- FIRST PARTIES ---
+<module 'neural_lam' from '/home/trieutord/neural-lam/neural_lam/__init__.py'> version=0.2.0+ie
+<module 'mera_explorer' from '/home/trieutord/mera-explorer/mera_explorer/__init__.py'> version=0.3.0
+<module 'metplotlib' from '/home/trieutord/metplotlib/metplotlib/__init__.py'> version=0.1.1
+```
 
 ## 2. Use cases
 
@@ -111,7 +131,7 @@ bash 1_create_mera_dataset.sh
 If you are training a model on a given dataset for the first time, edit and run
 ```
 ~/neural-lam/sbatch/2_prep_train_model.sh
-```.
+```
 If you already did a training on the same dataset, you can skip it.
 Then, edit and run 
 ```
