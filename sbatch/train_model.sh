@@ -8,7 +8,7 @@
 #SBATCH --chdir=/scratch/dutr/spool
 # Choose the queue
 #SBATCH --qos=ng
-#SBATCH --gpus=2
+#SBATCH --gpus=4
 #SBATCH --cpus-per-gpu=16
 #SBATCH --mem=128GB
 # Wall clock time limit
@@ -38,15 +38,15 @@ echo "SLURM_CPUS_PER_GPU=$SLURM_CPUS_PER_GPU"
 
 # Hardware variables (must be equal to the SBATCH arguments)
 N_WORKERS=16
-N_GPUS=2
+N_GPUS=4
 
 DATASET=mera_37years_24h
 GRAPH=hierarchical
 MODEL=hi_lam
-BATCHSIZE=2
-EPOCHS=60
-AR_STEPS=1
-STARTFROM=hi_lam-4x64-10_16_09-0629
+BATCHSIZE=1
+EPOCHS=22
+AR_STEPS=6
+STARTFROM=hi_lam-4x64-11_08_09-7276
 
 set -vx
 
@@ -65,6 +65,6 @@ srun --cpus-per-gpu $N_WORKERS python $HOME/neural-lam/scripts/train_model.py \
 --track_emissions True \
 --country ITA \
 --restore_opt 1 \
---seed 233
+--seed 861
 
 date
