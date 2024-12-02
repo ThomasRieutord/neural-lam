@@ -105,7 +105,18 @@ python tests/import_tests.py
 ```
 The result should look like this:
 ```
-(neurallam)
+(neurallam) [dutr@ac6-102 ~]$ python tests/import_tests.py 
+
+ --- THIRD PARTIES ---
+<module 'numpy' from '/ec/res4/hpcperm/dutr/venvs/neurallam/lib/python3.11/site-packages/numpy/__init__.py'> version=2.1.3
+<module 'pandas' from '/ec/res4/hpcperm/dutr/venvs/neurallam/lib/python3.11/site-packages/pandas/__init__.py'> version=2.2.3
+<module 'torch' from '/ec/res4/hpcperm/dutr/venvs/neurallam/lib/python3.11/site-packages/torch/__init__.py'> version=2.5.1+cu124
+<module 'torch_geometric' from '/ec/res4/hpcperm/dutr/venvs/neurallam/lib/python3.11/site-packages/torch_geometric/__init__.py'> version=2.3.1
+
+ --- FIRST PARTIES ---
+<module 'neural_lam' from '/etc/ecmwf/nfs/dh1_home_b/dutr/neural-lam/neural_lam/__init__.py'> version=0.2.0+ie
+<module 'mera_explorer' from '/etc/ecmwf/nfs/dh1_home_b/dutr/mera-explorer/mera_explorer/__init__.py'> version=0.3.0
+<module 'metplotlib' from '/etc/ecmwf/nfs/dh1_home_b/dutr/metplotlib/metplotlib/__init__.py'> version=0.1.1
 ```
 
 ## 2. Use cases
@@ -116,9 +127,7 @@ You are now ready to use Neural-LAM on the Atos. Some scripts already exist for 
 
 Edit and run the script `~/neural-lam/sbatch/1_create_mera_dataset.sh`:
 ```
-venv-activate neurallam
-cd ~/neural-lam/sbatch
-sbatch 1_create_mera_dataset.sh
+sbatch ~/neural-lam/sbatch/1_create_mera_dataset.sh
 ```
 
 
