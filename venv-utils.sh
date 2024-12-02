@@ -1,6 +1,7 @@
 # >>> venv-utils
 # Tools for Python virtual environments
-export VENVROOT=/data/$USER/venvs
+export VENVROOT=$HPCPERM/venvs
+export PIPCACHEXL=$SCRATCH/cache/pip
 venv-list(){
     # Virtual environment listing tool.
     #
@@ -53,7 +54,7 @@ venv-remove(){
     #
     echo "Removing environment: $VENVROOT/$1"
     deactivate
-    rm -r $VENVROOT/$1
+    rm -rf $VENVROOT/$1
 }
 venv-activate(){
     # Virtual environment activation tool.

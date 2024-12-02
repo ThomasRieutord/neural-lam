@@ -1,10 +1,10 @@
 # Getting started with Neural-LAM on Reaserve
 
-This document summarizes the procedure to install the [Neural-LAM](https://github.com/mllam/neural-lam) code and use it on the Met Éireann research server (Reaserve).
+This document summarizes the procedure to install the [Neural-LAM](https://github.com/mllam/neural-lam) code and use it on the ECMWF supercomputer (Atos).
 The main additions to the procedure written in the original repo are the use of [virtual environments](https://docs.python.org/3/library/venv.html). and the extra dependencies induced by the use of the [MERA explorer](https://github.com/ThomasRieutord/mera-explorer) code.
-It is assumed that the following commands are run on a Linux machine without root priviledges.
+It is assumed that the following commands are run on a Linux machine without root priviledges but with access to the [GPU partition](https://confluence.ecmwf.int/display/UDOC/HPC2020%3A+GPU+usage+for+AI+and+Machine+Learning)
 
-  * Last update: 27 Nov 2024 (Thomas Rieutord)
+  * Last update: 28 Nov 2024 (Thomas Rieutord)
 
 ## 1. Installation
 
@@ -24,7 +24,7 @@ git clone https://github.com/ThomasRieutord/neural-lam.git
 Then, make sure you are on the correct branch of the Neural-LAM repository. This doc refers to the branch `met-eireann`:
 ```
 cd ~/neural-lam
-git checkout met-eireann
+git checkout atos
 ```
 Make sure the current file is present in your local directory before you continue.
 
@@ -37,8 +37,10 @@ The installation procedure starts from scratch, please skip any step you have al
 
 As virtual environment can be reach relatively large sizes (with deep learning library, ~5GB per venv), we recommend to store them in a large enough file system.
 Typically, $HOME directories may be too small.
-We store the virtual environments in the variable `VENVROOT`, here set to `/data/$USER/venvs`.
-Please adjust the path in the `venv-utils.sh` file and append it to your `.bashrc`:
+We store the virtual environments in the variable `VENVROOT`, here set to `$HPCPERM/venvs`.
+Additionally, the `pip` cache directory is by default `$TMPDIR`, which is only 3GB so it might raise a quota error.
+Therefore we define the variable `PIPCACHEXL`, here set to `SCRATCH/cache/pip`, that will be used to move the `pip` cache to a larger filesystem.
+Please adjust the paths in the `venv-utils.sh` file and append it to your `.bashrc`:
 
 ```
 echo "# Added: $(date) from $PWD/venv-utils.sh" >> ~/.bashrc
@@ -48,8 +50,9 @@ source ~/.bashrc
 
 ### 1.3 Create a new environment and update pip
 
-After restarting your shell, you will be able to create a new environment with the following command.
+After sourcing the .bashrc or restarting your shell, you will be able to create a new environment with the following command.
 ```
+module load python3
 venv-create neurallam python3.11 --upgrade-pip
 ```
 
@@ -59,9 +62,10 @@ venv-create neurallam python3.11 --upgrade-pip
 ```
 venv-activate neurallam
 
-pip install -e "neural-lam/.[dev,meteireann]"
-pip install -e mera-explorer/.
-pip install -e metplotlib/.
+TMPDIR=$PIPCACHEXL
+pip install -e "neural-lam/.[dev,meteireann]" --cache-dir $PIPCACHEXL
+pip install -e mera-explorer/. --cache-dir $PIPCACHEXL
+pip install -e metplotlib/. --cache-dir $PIPCACHEXL
 ```
 
 **NB:** to get out of your environment and retrieve the default Python installationm the command is `deactivate`.
@@ -72,8 +76,8 @@ Make sure to activate your environment prior to use Neural-LAM.
 For the **bulk inputs**, The MERA are stored in different location depending on the machine you use. This document gives the ones for Reaserve.
 Edit the file `~/mera-explorer/local/paths.txt` and put the following values:
 ```
-MERAROOTDIR = "/data/trieutord/MERA/grib-all" # Parent directory of all MERA GRIB files
-MERACLIMDIR = "/data/trieutord/MERA/meraclim" # Directory where are stored climatology data (in particular the m05.grib)
+MERAROOTDIR = "/ec/res4/scratch/dutr" # Parent directory of all MERA GRIB files
+MERACLIMDIR = "/perm/dutr/mera" # Directory where are stored climatology data (in particular the m05.grib)
 ```
 
 Make sure the path is correct: the following command must return the same path as in the file.
@@ -83,9 +87,9 @@ python -c "from mera_explorer import MERAROOTDIR;print(MERAROOTDIR)"
 
 For the **prepared datasets**, create a directory called `neurallam-datasets` in your data partition and link it to `data` in the Neural-LAM repository.
 ```
-mkdir /data/<username>/neurallam-datasets
+mkdir $SCRATCH/neurallam-datasets
 cd ~/neural-lam # Make sure you are back to the directory containing the pyproject.toml
-ln -s /data/<username>/neurallam-datasets data
+ln -s $SCRATCH/neurallam-datasets data
 ```
 
 For the **outputs**, the directory will be created under the directory indicated by the `$SCRATCH` variable, usually equal to `/data/<username>`.
@@ -101,23 +105,12 @@ python tests/import_tests.py
 ```
 The result should look like this:
 ```
-(neurallam) [trieutord@reaserve neural-lam]$ python tests/import_tests.py 
-
- --- THIRD PARTIES ---
-<module 'numpy' from '/data/trieutord/venvs/neurallam/lib64/python3.9/site-packages/numpy/__init__.py'> version=2.0.2
-<module 'pandas' from '/data/trieutord/venvs/neurallam/lib64/python3.9/site-packages/pandas/__init__.py'> version=2.2.3
-<module 'torch' from '/data/trieutord/venvs/neurallam/lib64/python3.9/site-packages/torch/__init__.py'> version=2.5.1+cu124
-<module 'torch_geometric' from '/data/trieutord/venvs/neurallam/lib64/python3.9/site-packages/torch_geometric/__init__.py'> version=2.3.1
-
- --- FIRST PARTIES ---
-<module 'neural_lam' from '/home/trieutord/neural-lam/neural_lam/__init__.py'> version=0.2.0+ie
-<module 'mera_explorer' from '/home/trieutord/mera-explorer/mera_explorer/__init__.py'> version=0.3.0
-<module 'metplotlib' from '/home/trieutord/metplotlib/metplotlib/__init__.py'> version=0.1.1
+(neurallam)
 ```
 
 ## 2. Use cases
 
-You are now ready to use Neural-LAM on Reaserve. Some scripts already exist for the current use cases.
+You are now ready to use Neural-LAM on the Atos. Some scripts already exist for the current use cases.
 
 ### 2.1 Create datasets
 
@@ -125,7 +118,7 @@ Edit and run the script `~/neural-lam/sbatch/1_create_mera_dataset.sh`:
 ```
 venv-activate neurallam
 cd ~/neural-lam/sbatch
-bash 1_create_mera_dataset.sh
+sbatch 1_create_mera_dataset.sh
 ```
 
 
@@ -133,12 +126,12 @@ bash 1_create_mera_dataset.sh
 
 If you are training a model on a given dataset for the first time, edit and run
 ```
-~/neural-lam/sbatch/2_prep_train_model.sh
+sbatch ~/neural-lam/sbatch/2_prep_train_model.sh
 ```
 If you already did a training on the same dataset, you can skip it.
 Then, edit and run 
 ```
-~/neural-lam/sbatch/3_train_model.sh
+sbatch ~/neural-lam/sbatch/3_train_model.sh
 ```
 
 
