@@ -48,7 +48,7 @@ AR_STEPS=1
 
 set -vx
 
-python $HOME/neural-lam/scripts/train_model.py \
+srun --cpus-per-gpu $N_WORKERS python $HOME/neural-lam/scripts/train_model.py \
 --dataset $DATASET \
 --graph $GRAPH \
 --model $MODEL \
@@ -58,6 +58,6 @@ python $HOME/neural-lam/scripts/train_model.py \
 --control_only 1 \
 --epochs $EPOCHS \
 --n_workers $N_WORKERS \
---track_emissions True \
+--gpus $N_GPUS \
 
 date
