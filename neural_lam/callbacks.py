@@ -51,7 +51,7 @@ class LogfilefriendlyProgressBar(pl.callbacks.ProgressBar):
         super().on_train_start(*_)
         # Update refresh_rate
         if isinstance(self.refresh_rate, float):
-            self.refresh_rate = int(self.total_train_batches * self.refresh_rate)
+            self.refresh_rate = max(1, int(self.total_train_batches * self.refresh_rate))
         elif isinstance(self.refresh_rate, int):
             pass
         else:

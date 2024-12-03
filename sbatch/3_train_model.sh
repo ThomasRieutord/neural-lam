@@ -9,37 +9,46 @@
 # Choose the queue
 #SBATCH --qos=ng
 #SBATCH --gpus=4
-#SBATCH --cpus-per-gpu=8
+#SBATCH --cpus-per-gpu=16
 #SBATCH --mem=128GB
 # Wall clock time limit
-#SBATCH --time=4:00:00
+#SBATCH --time=48:00:00
 # Send an email on failure
 #SBATCH --mail-type=FAIL
 # This is the job
 date
 echo "Running on $HOSTNAME:$PWD"
 
-# On reaserve, environment must be loaded before executing the code
-module load conda
-mamba activate neurallam
+source $HOME/.bashrc
+venv-activate neurallam
 
 echo "Env successfully loaded!"
 python --version
 date
 
+# Check hardware allocation
+echo " ====== HARDWARE ALLOCATION ====== "
+free -h
+lscpu
 nvidia-smi
+echo "OMP_NUM_THREADS=$OMP_NUM_THREADS"
+echo "SLURM_CPUS_PER_TASK=$SLURM_CPUS_PER_TASK"
+echo "SLURM_CPUS_PER_GPU=$SLURM_CPUS_PER_GPU"
 
-DATASET=mera_4years_fullres
+# Hardware variables (must be equal to the SBATCH arguments)
+N_WORKERS=16
+N_GPUS=4
+
+DATASET=mera_small_example
 GRAPH=hierarchical
 MODEL=hi_lam
 BATCHSIZE=2
-EPOCHS=50
-N_WORKERS=8
+EPOCHS=3
 AR_STEPS=1
 
 set -vx
 
-python $HOME/neural-lam/scripts/train_model.py \
+srun --cpus-per-gpu $N_WORKERS python $HOME/neural-lam/scripts/train_model.py \
 --dataset $DATASET \
 --graph $GRAPH \
 --model $MODEL \
@@ -49,8 +58,6 @@ python $HOME/neural-lam/scripts/train_model.py \
 --control_only 1 \
 --epochs $EPOCHS \
 --n_workers $N_WORKERS \
---track_emissions True \
---seed 193 \
---gpus 4
+--gpus $N_GPUS \
 
 date
