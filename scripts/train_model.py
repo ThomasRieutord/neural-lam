@@ -201,9 +201,8 @@ def main():
     )
     parser.add_argument(
         "--track_emissions",
-        type=bool,
-        default=False,
-        help="Enable carbon emission tracking (default: False)",
+        action="store_true",
+        help="Enable carbon emission tracking",
     )
     parser.add_argument(
         "--country",

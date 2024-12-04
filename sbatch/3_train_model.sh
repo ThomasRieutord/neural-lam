@@ -8,11 +8,11 @@
 #SBATCH --chdir=/scratch/dutr/spool
 # Choose the queue
 #SBATCH --qos=ng
-#SBATCH --gpus=4
+#SBATCH --gpus=1
 #SBATCH --cpus-per-gpu=16
 #SBATCH --mem=128GB
 # Wall clock time limit
-#SBATCH --time=48:00:00
+#SBATCH --time=1:00:00
 # Send an email on failure
 #SBATCH --mail-type=FAIL
 # This is the job
@@ -37,7 +37,7 @@ echo "SLURM_CPUS_PER_GPU=$SLURM_CPUS_PER_GPU"
 
 # Hardware variables (must be equal to the SBATCH arguments)
 N_WORKERS=16
-N_GPUS=4
+N_GPUS=1
 
 DATASET=mera_small_example
 GRAPH=hierarchical
@@ -59,5 +59,6 @@ srun --cpus-per-gpu $N_WORKERS python $HOME/neural-lam/scripts/train_model.py \
 --epochs $EPOCHS \
 --n_workers $N_WORKERS \
 --gpus $N_GPUS \
+--track_emissions
 
 date
