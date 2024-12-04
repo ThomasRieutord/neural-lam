@@ -103,10 +103,14 @@ class ARModel(pl.LightningModule):
         if args.track_emissions:
             from codecarbon import OfflineEmissionsTracker
 
-            self.emission_tracker = OfflineEmissionsTracker(country_iso_code=args.country)
-            self._energy_consumption = 0
-            self._last_power_measurement_time = time.time()
-            self._last_power_measurement = self.get_power_consumption()
+            self.emission_tracker = OfflineEmissionsTracker(
+                country_iso_code=args.country,
+                save_to_file=False,
+                log_level="warn",
+            )
+            # self._energy_consumption = 0
+            # self._last_power_measurement_time = time.time()
+            # self._last_power_measurement = self.get_power_consumption()
 
     def on_fit_start(self):
         """Start the emission tracker, if any"""
@@ -310,10 +314,10 @@ class ARModel(pl.LightningModule):
         for metric_list in self.val_metrics.values():
             metric_list.clear()
         
-        # Reset the power consumption without updating energy (remove the contribution of the validation step)
-        if hasattr(self, "emission_tracker"):
-            self._last_power_measurement_time = time.time()
-            self._last_power_measurement = self.get_power_consumption()
+        # # Reset the power consumption without updating energy (remove the contribution of the validation step)
+        # if hasattr(self, "emission_tracker"):
+            # self._last_power_measurement_time = time.time()
+            # self._last_power_measurement = self.get_power_consumption()
 
     # pylint: disable-next=unused-argument
     def test_step(self, batch, batch_idx):
@@ -654,35 +658,32 @@ class ARModel(pl.LightningModule):
         """Return total power consumption from all devices in kilowatts"""
         assert hasattr(
             self, "emission_tracker"
-        ), f"System metrics are access through Codecarbon's emission tracker, which requires --track_emissions=True"
+        ), f"System metrics are access through Codecarbon's emission tracker, which requires --track_emissions"
+        self.emission_tracker._measure_power_and_energy()
+        power_kW = self.emission_tracker._cpu_power + self.emission_tracker._gpu_power + self.emission_tracker._ram_power
+        return power_kW.kW
 
-        power_kW = 0
-        for device in self.emission_tracker._hardware:
-            power_kW += device.total_power().kW
+    # def update_energy_consumption(self):
+        # """Update measurements of energy consumption"""
+        # assert hasattr(
+            # self, "emission_tracker"
+        # ), f"System metrics are access through Codecarbon's emission tracker, which requires --track_emissions=True"
 
-        return power_kW
+        # new_power_measurement_time = time.time()
+        # new_power_measurement = self.get_power_consumption()
 
-    def update_energy_consumption(self):
-        """Update measurements of energy consumption"""
-        assert hasattr(
-            self, "emission_tracker"
-        ), f"System metrics are access through Codecarbon's emission tracker, which requires --track_emissions=True"
+        # #  E  = (P1 + P2)/2 * (t2 - t1)
+        # # kWh       kW          hours
+        # energy_increment = (
+            # (new_power_measurement + self._last_power_measurement) / 2
+        # ) * (
+            # (new_power_measurement_time - self._last_power_measurement_time)
+            # / 3600
+        # )
 
-        new_power_measurement_time = time.time()
-        new_power_measurement = self.get_power_consumption()
-
-        #  E  = (P1 + P2)/2 * (t2 - t1)
-        # kWh       kW          hours
-        energy_increment = (
-            (new_power_measurement + self._last_power_measurement) / 2
-        ) * (
-            (new_power_measurement_time - self._last_power_measurement_time)
-            / 3600
-        )
-
-        self._energy_consumption += energy_increment
-        self._last_power_measurement = new_power_measurement
-        self._last_power_measurement_time = new_power_measurement_time
+        # self._energy_consumption += energy_increment
+        # self._last_power_measurement = new_power_measurement
+        # self._last_power_measurement_time = new_power_measurement_time
 
     @property
     def power_consumption(self):
@@ -698,8 +699,8 @@ class ARModel(pl.LightningModule):
         if not hasattr(self, "emission_tracker"):
             return np.nan
         
-        self.update_energy_consumption()
-        return self._energy_consumption
+        self.emission_tracker._measure_power_and_energy()
+        return self.emission_tracker._total_energy.kWh
 
     @property
     def carbon_emissions(self):
@@ -707,5 +708,6 @@ class ARModel(pl.LightningModule):
         if not hasattr(self, "emission_tracker"):
             return np.nan
         
+        self.emission_tracker._measure_power_and_energy()
         emissions = self.emission_tracker._prepare_emissions_data()
         return emissions.emissions

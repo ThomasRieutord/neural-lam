@@ -34,7 +34,7 @@ dev = [
     "pooch>=1.8.2",
 ]
 meteireann = [
-    "codecarbon==1.2.0",
+    "codecarbon==2.8.1",
     "mlflow==2.16.0",
 ]
 [tool.setuptools]
