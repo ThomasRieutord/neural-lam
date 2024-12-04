@@ -1,10 +1,10 @@
-# Getting started with Neural-LAM on Reaserve
+# Getting started with Neural-LAM on ECMWF's HPC (ATOS)
 
 This document summarizes the procedure to install the [Neural-LAM](https://github.com/mllam/neural-lam) code and use it on the ECMWF supercomputer (Atos).
 The main additions to the procedure written in the original repo are the use of [virtual environments](https://docs.python.org/3/library/venv.html). and the extra dependencies induced by the use of the [MERA explorer](https://github.com/ThomasRieutord/mera-explorer) code.
 It is assumed that the following commands are run on a Linux machine without root priviledges but with access to the [GPU partition](https://confluence.ecmwf.int/display/UDOC/HPC2020%3A+GPU+usage+for+AI+and+Machine+Learning)
 
-  * Last update: 28 Nov 2024 (Thomas Rieutord)
+  * Last update: 4 Dec 2024 (Thomas Rieutord)
 
 ## 1. Installation
 
