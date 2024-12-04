@@ -118,7 +118,7 @@ class ARModel(pl.LightningModule):
         """Shutdown the emission tracker, if any"""
         if hasattr(self, "emission_tracker"):
             emissions = self.emission_tracker.stop()
-            #print(f"Emissions made during training: {emissions} kgCO2e")
+            self.log(f"Emissions made during training: {emissions} kgCO2e")
 
     def configure_optimizers(self):
         opt = torch.optim.AdamW(
